@@ -117,30 +117,33 @@ Detected Rhythm Pattern:
 - Snare positions: ${rhythm.snare.length > 0 ? rhythm.snare.join(', ') : 'None detected'}
 - Hihat positions: ${rhythm.hihat.length > 0 ? rhythm.hihat.join(', ') : 'None detected'}
 
-Create a complete Strudel pattern that includes:
-1. Drum pattern matching the detected rhythm
-2. A bassline in the key of ${key}
-3. Appropriate tempo setting
+Create a Strudel pattern for this song. Be creative and use multiple layers to capture the essence of the music.
 
-You must return EXACTLY this format:
+Key information:
+- Tempo: ${tempo} BPM (use setcps(${tempo}/60/4))
+- Key: ${key}
+- Energy: ${features.energy.toFixed(2)} (${this.describeLevel(features.energy)})
+- Brightness: ${features.spectralCentroid.toFixed(0)} Hz (${this.describeBrightness(features.spectralCentroid)})
 
-setcps(VALUE)
+Available Strudel features to use:
+- Drums: s("bd"), s("sd"), s("hh"), s("cp"), s("bd:1"), s("sd:1")
+- Synths: s("sawtooth"), s("square"), s("triangle"), note().sound("sine")
+- Effects: .gain(), .room(), .delay(), .pan(), .speed(), .slow(), .fast()
+- Patterns: Can use *, /, <>, [], ~ for complex rhythms
+- Notes: Use n() with numbers or note names like "c4 eb4 g4"
 
+Example of a more complex pattern:
+setcps(0.5)
 $: stack(
-  s("bd*4"),
-  s("sd*2"),
-  s("hh*8").gain(0.5),
-  n("0 3 5 7").s("bass")
-).room(0.2)
+  s("bd:5 ~ bd:5 ~").gain(0.8),
+  s("~ sd:3 ~ sd:3").gain(0.7),
+  s("hh*16").gain(0.4).pan(sine.range(0,1)),
+  n("<c2 eb2 g2 bb2>").s("bass").gain(0.6),
+  n("c4 eb4 g4 <bb4 c5>").s("sawtooth").gain(0.3).room(0.5),
+  n("~ ~ <c5 eb5> ~").s("square").gain(0.2).delay(0.125)
+).room(0.3)
 
-RULES:
-- First line: setcps() with tempo value
-- Second line: empty
-- Third line: "$: stack("
-- Use s() for drums: bd, sd, hh, cp
-- Use n() for notes with .s("bass") or .s("sawtooth")
-- NO methods like .step(), .t(), etc
-- Only use: .gain(), .room(), .speed(), .slow()`;
+Create something that captures the feel of "${songName}" by ${artistName}.`;
   }
 
   /**
@@ -194,13 +197,30 @@ Make minimal changes to improve the match. Keep the overall structure but adjust
     // Remove markdown code blocks if present
     pattern = pattern.replace(/```\w*\n?/g, '');
     
-    // Remove any explanatory text
+    // Remove any explanatory text before the pattern
     const lines = pattern.split('\n');
-    const codeLines = lines.filter(line => 
-      line.trim() && !line.startsWith('//') && !line.match(/^[A-Z]/)
+    let startIndex = lines.findIndex(line => 
+      line.trim().startsWith('setcps') || 
+      line.trim().startsWith('$:') ||
+      line.trim().includes('stack(')
     );
     
-    return codeLines.join('\n').trim();
+    if (startIndex === -1) startIndex = 0;
+    
+    // Take from the pattern start to the end
+    const patternLines = lines.slice(startIndex);
+    
+    // Remove any trailing explanatory text
+    let endIndex = patternLines.length;
+    for (let i = patternLines.length - 1; i >= 0; i--) {
+      const line = patternLines[i].trim();
+      if (line && !line.startsWith('//') && !line.match(/^[A-Z]/)) {
+        endIndex = i + 1;
+        break;
+      }
+    }
+    
+    return patternLines.slice(0, endIndex).join('\n').trim();
   }
 
   /**
