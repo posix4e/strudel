@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strudel Audio Export</title>
+</head>
+<body>
+  <h1>Strudel Audio Export</h1>
+  <p>This example demonstrates how to export Strudel patterns to audio files.</p>
+  
+  <div>
+    <h2>Pattern Code:</h2>
+    <textarea id="pattern-code" rows="5" cols="50">s("bd*4, hh*8, [~ cp]*2").speed(1.5)</textarea>
+  </div>
+  
+  <div>
+    <h2>Export Settings:</h2>
+    <label>Duration (seconds): <input type="number" id="duration" value="4" min="1" max="60"></label><br>
+    <label>Sample Rate: 
+      <select id="sampleRate">
+        <option value="44100" selected>44100 Hz</option>
+        <option value="48000">48000 Hz</option>
+      </select>
+    </label>
+  </div>
+  
+  <div>
+    <button id="preview">Preview Pattern</button>
+    <button id="stop">Stop</button>
+    <button id="export">Export to WAV</button>
+  </div>
+  
+  <div id="status"></div>
+  
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
