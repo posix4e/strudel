@@ -1,11 +1,16 @@
-import OpenAI from 'openai';
+import { LLMProviderFactory } from './llm/index.js';
 
 /**
  * Strudel pattern generator using LLM
  */
 export class PatternGenerator {
-  constructor(apiKey) {
-    this.openai = new OpenAI({ apiKey });
+  constructor(llmProvider) {
+    // Support legacy API - if string passed, assume it's OpenAI API key
+    if (typeof llmProvider === 'string') {
+      this.llm = LLMProviderFactory.create('openai', { apiKey: llmProvider });
+    } else {
+      this.llm = llmProvider;
+    }
   }
 
   /**
@@ -14,29 +19,29 @@ export class PatternGenerator {
   async generateFromAnalysis(analysis, artistName, songName) {
     const prompt = this.buildPrompt(analysis, artistName, songName);
     
-    const completion = await this.openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert at creating Strudel live coding patterns. 
-                    Generate patterns that accurately recreate songs based on audio analysis data.
-                    Use Strudel syntax, NOT TidalCycles. Key differences:
-                    - Use setcps() not cps
-                    - Use s() for samples, n() for notes
-                    - Use .stack() not $ and #
-                    - Chain methods with dots
-                    Only respond with valid Strudel JavaScript code, no explanations.`
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.3, // Lower temperature for more deterministic output
+    const messages = [
+      {
+        role: "system",
+        content: `You are an expert at creating Strudel live coding patterns. 
+                  Generate patterns that accurately recreate songs based on audio analysis data.
+                  Use Strudel syntax, NOT TidalCycles. Key differences:
+                  - Use setcps() not cps
+                  - Use s() for samples, n() for notes
+                  - Use .stack() not $ and #
+                  - Chain methods with dots
+                  Only respond with valid Strudel JavaScript code, no explanations.`
+      },
+      {
+        role: "user",
+        content: prompt
+      }
+    ];
+    
+    const completion = await this.llm.generateCompletion(messages, {
+      temperature: 0.3 // Lower temperature for more deterministic output
     });
     
-    return this.cleanPattern(completion.choices[0].message.content);
+    return this.cleanPattern(completion);
   }
 
   /**
@@ -49,24 +54,24 @@ export class PatternGenerator {
       analysis
     );
     
-    const completion = await this.openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert at refining Strudel patterns to match target songs.
-                    Adjust the provided pattern based on the comparison data.
-                    Only respond with valid Strudel code, no explanations.`
-        },
-        {
-          role: "user",
-          content: refinementPrompt
-        }
-      ],
-      temperature: 0.2,
+    const messages = [
+      {
+        role: "system",
+        content: `You are an expert at refining Strudel patterns to match target songs.
+                  Adjust the provided pattern based on the comparison data.
+                  Only respond with valid Strudel code, no explanations.`
+      },
+      {
+        role: "user",
+        content: refinementPrompt
+      }
+    ];
+    
+    const completion = await this.llm.generateCompletion(messages, {
+      temperature: 0.2
     });
     
-    return this.cleanPattern(completion.choices[0].message.content);
+    return this.cleanPattern(completion);
   }
 
   /**

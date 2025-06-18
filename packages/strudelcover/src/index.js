@@ -1,5 +1,6 @@
 import { AudioAnalyzer } from './analyzer.js';
 import { PatternGenerator } from './generator.js';
+import { LLMProviderFactory } from './llm/index.js';
 import StrudelAudioExport from '@strudel/audio-export';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
@@ -10,12 +11,41 @@ import chalk from 'chalk';
  */
 export class StrudelCover {
   constructor(options = {}) {
-    if (!options.openaiKey) {
-      throw new Error('OpenAI API key is required');
+    // Initialize LLM provider
+    let llmProvider;
+    
+    // Legacy support - if openaiKey provided, use OpenAI
+    if (options.openaiKey) {
+      llmProvider = LLMProviderFactory.create('openai', { 
+        apiKey: options.openaiKey,
+        model: options.model 
+      });
+    } 
+    // New way - explicit provider configuration
+    else if (options.llm) {
+      if (typeof options.llm === 'string') {
+        // Simple provider name, must have API key in env or config
+        const envKey = `${options.llm.toUpperCase()}_API_KEY`;
+        const apiKey = options.llmConfig?.apiKey || process.env[envKey];
+        
+        if (!apiKey && options.llm !== 'ollama') {
+          throw new Error(`${options.llm} requires API key via llmConfig.apiKey or ${envKey} env var`);
+        }
+        
+        llmProvider = LLMProviderFactory.create(options.llm, {
+          apiKey,
+          ...options.llmConfig
+        });
+      } else {
+        // Direct provider instance
+        llmProvider = options.llm;
+      }
+    } else {
+      throw new Error('LLM configuration required. Use options.openaiKey (legacy) or options.llm');
     }
     
     this.analyzer = new AudioAnalyzer();
-    this.generator = new PatternGenerator(options.openaiKey);
+    this.generator = new PatternGenerator(llmProvider);
     this.exporter = new StrudelAudioExport({ 
       headless: true,
       duration: 30 // Default to 30 seconds
@@ -237,4 +267,5 @@ export class StrudelCover {
 // Export everything
 export { AudioAnalyzer } from './analyzer.js';
 export { PatternGenerator } from './generator.js';
+export { LLMProviderFactory, BaseLLMProvider, OpenAIProvider, AnthropicProvider, OllamaProvider } from './llm/index.js';
 export default StrudelCover;

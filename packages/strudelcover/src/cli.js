@@ -30,6 +30,9 @@ program
   .option('-t, --target <score>', 'Target similarity score (0-100)', '80')
   .option('-d, --duration <seconds>', 'Max duration to analyze', '30')
   .option('-m, --manual', 'Use manual threshold mode instead of auto score mode')
+  .option('--llm <provider>', 'LLM provider: openai, anthropic, ollama', 'openai')
+  .option('--model <model>', 'LLM model to use')
+  .option('--llm-base-url <url>', 'Custom LLM API endpoint')
   .option('--tempo-threshold <bpm>', 'Max tempo difference (BPM)', '5')
   .option('--energy-threshold <diff>', 'Max energy difference', '0.1')
   .option('--brightness-threshold <diff>', 'Max brightness difference', '0.2')
@@ -42,10 +45,13 @@ program
     const spinner = ora('Initializing...').start();
     
     try {
-      // Get API key
-      const apiKey = options.apiKey || process.env.OPENAI_API_KEY;
-      if (!apiKey) {
-        spinner.fail('OpenAI API key required (use --api-key or set OPENAI_API_KEY)');
+      // Configure LLM
+      const llmProvider = options.llm || 'openai';
+      const envKeyName = `${llmProvider.toUpperCase()}_API_KEY`;
+      const apiKey = options.apiKey || process.env[envKeyName] || process.env.OPENAI_API_KEY;
+      
+      if (!apiKey && llmProvider !== 'ollama') {
+        spinner.fail(`${llmProvider} API key required (use --api-key or set ${envKeyName})`);
         process.exit(1);
       }
       
@@ -82,7 +88,12 @@ program
       
       // Create StrudelCover instance
       const coverOptions = {
-        openaiKey: apiKey,
+        llm: llmProvider,
+        llmConfig: {
+          apiKey,
+          model: options.model,
+          baseURL: options.llmBaseUrl
+        },
         outputDir: options.output,
         maxIterations: parseInt(options.iterations),
         targetScore: parseInt(options.target),
@@ -126,6 +137,10 @@ program.on('--help', () => {
   console.log('  # Basic usage (auto mode with default target score of 80)');
   console.log('  $ strudelcover song.mp3 "The Beatles" "Hey Jude"');
   console.log('');
+  console.log('  # Using different LLM providers');
+  console.log('  $ strudelcover song.mp3 "Artist" "Song" --llm anthropic');
+  console.log('  $ strudelcover song.mp3 "Artist" "Song" --llm ollama --model llama2');
+  console.log('');
   console.log('  # Custom target score and iterations');
   console.log('  $ strudelcover audio.wav "Daft Punk" "Get Lucky" --iterations 10 --target 90');
   console.log('');
@@ -140,8 +155,14 @@ program.on('--help', () => {
   console.log('  Auto Mode (default):   Uses overall similarity score (0-100)');
   console.log('  Manual Mode (--manual): Must meet all specified thresholds');
   console.log('');
+  console.log('LLM Providers:');
+  console.log('  openai (default)  - GPT-4o, requires OPENAI_API_KEY');
+  console.log('  anthropic         - Claude, requires ANTHROPIC_API_KEY');
+  console.log('  ollama            - Local models, no API key needed');
+  console.log('');
   console.log('Environment Variables:');
-  console.log('  OPENAI_API_KEY    Your OpenAI API key for pattern generation');
+  console.log('  OPENAI_API_KEY     OpenAI API key');
+  console.log('  ANTHROPIC_API_KEY  Anthropic API key');
 });
 
 program.parse();

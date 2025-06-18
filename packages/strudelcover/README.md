@@ -13,6 +13,7 @@ AI-powered tool to automatically recreate songs as Strudel patterns through iter
 
 ## Features
 
+- Multiple LLM providers: OpenAI (GPT-4o), Anthropic (Claude), Ollama (local)
 - Two modes: Auto mode (overall score) and Manual mode (per-metric thresholds)
 - Configurable iteration limits and similarity targets
 - Custom weights for scoring algorithm
@@ -45,6 +46,10 @@ strudelcover song.wav "Daft Punk" "Get Lucky" \
   --target 85 \
   --output ./covers/daft-punk
 
+# Using different LLM providers
+strudelcover song.mp3 "Artist" "Song" --llm anthropic
+strudelcover song.mp3 "Artist" "Song" --llm ollama --model llama2
+
 # Manual threshold mode
 strudelcover song.mp3 "Artist" "Song" \
   --manual \
@@ -58,11 +63,29 @@ strudelcover song.mp3 "Artist" "Song" \
 ```javascript
 import StrudelCover from '@strudel/strudelcover';
 
-// Auto mode (default)
+// Legacy: OpenAI with API key
 const cover = new StrudelCover({
   openaiKey: 'your-api-key',
   maxIterations: 5,
   targetScore: 80
+});
+
+// New: Specify LLM provider
+const cover = new StrudelCover({
+  llm: 'anthropic',
+  llmConfig: {
+    apiKey: 'your-anthropic-key',
+    model: 'claude-3-5-sonnet-20241022'
+  }
+});
+
+// Use Ollama (local models)
+const cover = new StrudelCover({
+  llm: 'ollama',
+  llmConfig: {
+    model: 'llama2',
+    baseURL: 'http://localhost:11434'
+  }
 });
 
 // Manual mode with per-metric thresholds
@@ -112,6 +135,9 @@ console.log(results.bestScore);   // Similarity score (0-100)
 - `-t, --target <score>` - Target similarity score 0-100 (default: 80)
 - `-d, --duration <seconds>` - Max duration to analyze (default: 30)
 - `-m, --manual` - Use manual threshold mode instead of auto score mode
+- `--llm <provider>` - LLM provider: openai, anthropic, ollama (default: openai)
+- `--model <model>` - LLM model to use
+- `--llm-base-url <url>` - Custom LLM API endpoint
 - `--tempo-threshold <bpm>` - Max tempo difference in BPM (default: 5)
 - `--energy-threshold <diff>` - Max energy difference (default: 0.1)
 - `--brightness-threshold <diff>` - Max brightness difference (default: 0.2)
@@ -120,7 +146,13 @@ console.log(results.bestScore);   // Similarity score (0-100)
 - `--require-key-match` - Require exact key match
 
 ### API Options
-- `openaiKey` - OpenAI API key (required)
+- `openaiKey` - OpenAI API key (legacy, use llm/llmConfig instead)
+- `llm` - LLM provider name ('openai', 'anthropic', 'ollama') or provider instance
+- `llmConfig` - LLM configuration object:
+  - `apiKey` - API key for the provider
+  - `model` - Model name to use
+  - `baseURL` - Custom API endpoint
+  - `temperature` - Generation temperature
 - `autoMode` - Use auto mode (default: true)
 - `maxIterations` - Maximum refinement iterations (default: 5)
 - `targetScore` - Target similarity score for auto mode (default: 80)
@@ -211,6 +243,54 @@ console.log(`Rhythm:`, analysis.rhythm);
 2. **Increase iterations** - More iterations = better match (but slower)
 3. **Use shorter clips** - 30-60 seconds is usually enough
 4. **Adjust target score** - 70-80 is realistic for complex songs
+
+## LLM Providers
+
+### OpenAI (default)
+```javascript
+// Uses GPT-4o by default
+const cover = new StrudelCover({
+  llm: 'openai',
+  llmConfig: { apiKey: 'sk-...' }
+});
+```
+
+### Anthropic Claude
+```javascript
+// Uses Claude 3.5 Sonnet by default
+const cover = new StrudelCover({
+  llm: 'anthropic',
+  llmConfig: { apiKey: 'sk-ant-...' }
+});
+```
+
+### Ollama (Local)
+```javascript
+// No API key needed
+const cover = new StrudelCover({
+  llm: 'ollama',
+  llmConfig: {
+    model: 'llama2',
+    baseURL: 'http://localhost:11434'
+  }
+});
+```
+
+### Custom Provider
+```javascript
+import { BaseLLMProvider } from '@strudel/strudelcover';
+
+class MyCustomProvider extends BaseLLMProvider {
+  async generateCompletion(messages, options) {
+    // Your implementation
+    return generatedText;
+  }
+}
+
+const cover = new StrudelCover({
+  llm: new MyCustomProvider({ /* config */ })
+});
+```
 
 ## License
 
