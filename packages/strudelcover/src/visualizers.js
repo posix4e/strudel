@@ -101,11 +101,11 @@ export function sparkleEnhance(pattern) {
   
   // Add some visual effects to the code
   enhanced = enhanced
-    // Add emoji indicators
-    .replace(/setcps/g, '⚡ setcps')
-    .replace(/stack/g, '📊 stack')
-    .replace(/room/g, '🌌 room')
-    .replace(/gain/g, '🔊 gain')
+    // Add comment indicators instead of emojis (to avoid syntax errors)
+    .replace(/setcps/g, 'setcps /* ⚡ TEMPO SYNC */')
+    .replace(/stack/g, 'stack /* 📊 PATTERN STACK */')
+    .replace(/room/g, 'room /* 🌌 SPACE EFFECT */')
+    .replace(/gain/g, 'gain /* 🔊 VOLUME CONTROL */')
     // Add cyber comments
     .replace(/\n/g, (match, offset) => {
       if (Math.random() < 0.3 && offset > 0) {

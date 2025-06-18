@@ -10,6 +10,10 @@ import ytdl from 'ytdl-core';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { promisify } from 'util';
+import { exec } from 'child_process';
+
+const execAsync = promisify(exec);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -66,25 +70,23 @@ const coverCommand = program
       if (input.includes('youtube.com') || input.includes('youtu.be')) {
         spinner.text = 'Downloading from YouTube...';
         
-        let info;
+        // Use yt-dlp for reliable downloads
+        const outputPath = join(options.output, 'youtube-audio.%(ext)s');
         try {
-          info = await ytdl.getInfo(input);
+          const { stdout } = await execAsync(`yt-dlp -x --audio-format mp3 -o "${outputPath}" "${input}"`);
+          // Get the actual filename from yt-dlp output
+          const match = stdout.match(/\[ExtractAudio\] Destination: (.+)/) || 
+                       stdout.match(/\[download\] (.+) has already been downloaded/) ||
+                       stdout.match(/\[download\] Destination: (.+)/);
+          if (match) {
+            audioPath = match[1].trim();
+          } else {
+            // Fallback to expected path
+            audioPath = outputPath.replace('%(ext)s', 'mp3');
+          }
         } catch (err) {
           throw new Error(`YouTube download failed: ${err.message}`);
         }
-        
-        const audioFormat = ytdl.chooseFormat(info.formats, { 
-          quality: 'highestaudio',
-          filter: 'audioonly' 
-        });
-        
-        audioPath = join(options.output, 'original.webm');
-        await new Promise((resolve, reject) => {
-          ytdl(input, { format: audioFormat })
-            .pipe(require('fs').createWriteStream(audioPath))
-            .on('finish', resolve)
-            .on('error', reject);
-        });
       } 
       // Handle SoundCloud URLs
       else if (input.includes('soundcloud.com')) {
@@ -95,6 +97,24 @@ const coverCommand = program
         
         // Download track
         audioPath = await soundcloudClient.downloadTrack(input, options.output);
+      }
+      // Handle Spotify URLs
+      else if (input.includes('spotify.com') || input.includes('spotify:')) {
+        spinner.text = 'Fetching from Spotify...';
+        
+        const clientId = process.env.SPOTIFY_CLIENT_ID;
+        const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+        
+        if (!clientId || !clientSecret) {
+          spinner.fail('Spotify credentials required (set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET)');
+          process.exit(1);
+        }
+        
+        const { SpotifyClient } = await import('./spotify/client.js');
+        const spotifyClient = new SpotifyClient(clientId, clientSecret);
+        
+        // Download track preview
+        audioPath = await spotifyClient.downloadTrack(input, options.output);
       }
       else if (!existsSync(audioPath)) {
         spinner.fail(`File not found: ${audioPath}`);
@@ -157,6 +177,10 @@ program.on('--help', () => {
   console.log('Examples:');
   console.log('  # Basic usage (auto mode with default target score of 80)');
   console.log('  $ strudelcover song.mp3 "The Beatles" "Hey Jude"');
+  console.log('');
+  console.log('  # Using Spotify (30-second preview, requires SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET)');
+  console.log('  $ strudelcover https://open.spotify.com/track/3cjvqsvvU80g7WJPMVh8iq "Grimes" "Genesis"');
+  console.log('  $ strudelcover spotify:track:3cjvqsvvU80g7WJPMVh8iq "Grimes" "Genesis"');
   console.log('');
   console.log('  # Using SoundCloud (no login required!)');
   console.log('  $ strudelcover https://soundcloud.com/artist/track-name "Artist" "Track"');

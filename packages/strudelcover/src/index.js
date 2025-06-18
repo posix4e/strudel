@@ -246,7 +246,15 @@ export class StrudelCover {
       // Save pattern to file
       const patternPath = join(this.outputDir, 'pattern.strudel');
       const { writeFileSync } = await import('fs');
-      writeFileSync(patternPath, bestPattern);
+      
+      // Apply sparkle enhancement to the final pattern if sparkle mode is enabled
+      let finalPattern = bestPattern;
+      if (this.sparkleMode) {
+        const { sparkleEnhance } = await import('./visualizers.js');
+        finalPattern = sparkleEnhance(bestPattern);
+      }
+      
+      writeFileSync(patternPath, finalPattern);
       
       console.log(chalk.green(`\n✨ StrudelCover Complete!`));
       console.log(chalk.gray(`Final score: ${bestScore}/100`));

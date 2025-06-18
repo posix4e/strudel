@@ -1,9 +1,10 @@
 import Meyda from 'meyda';
 import { decode } from 'node-wav';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import chalk from 'chalk';
 
 const execAsync = promisify(exec);
 
@@ -231,7 +232,7 @@ export class AudioAnalyzer {
       zcr: features.reduce((sum, f) => sum + (f.zcr || 0), 0) / features.length
     };
     
-    return {
+    const analysis = {
       duration,
       tempo,
       key,
@@ -239,6 +240,41 @@ export class AudioAnalyzer {
       features: avgFeatures,
       timeSeries: features
     };
+    
+    // Check for Spotify enhanced metadata
+    const spotifyEnhancedPath = audioPath.replace(/\.(mp3|wav)$/, '').replace('spotify-preview', 'spotify-enhanced') + '.json';
+    if (existsSync(spotifyEnhancedPath)) {
+      const spotifyData = JSON.parse(readFileSync(spotifyEnhancedPath, 'utf8'));
+      if (spotifyData.tempo) {
+        analysis.tempo = spotifyData.tempo;
+        console.log(chalk.dim(`Using Spotify tempo: ${spotifyData.tempo} BPM`));
+      }
+      if (spotifyData.key) {
+        analysis.key = spotifyData.key;
+        console.log(chalk.dim(`Using Spotify key: ${spotifyData.key}`));
+      }
+      if (spotifyData.energy) {
+        // Spotify energy is 0-1, our energy is 0-1 too
+        analysis.features.energy = spotifyData.energy;
+        console.log(chalk.dim(`Using Spotify energy: ${spotifyData.energy.toFixed(3)}`));
+      }
+    }
+    
+    // Check for SoundCloud enhanced metadata
+    const soundcloudEnhancedPath = audioPath.replace(/\.(mp3|wav)$/, '').replace('soundcloud-audio', 'soundcloud-enhanced') + '.json';
+    if (existsSync(soundcloudEnhancedPath)) {
+      const soundcloudData = JSON.parse(readFileSync(soundcloudEnhancedPath, 'utf8'));
+      if (soundcloudData.tempo) {
+        analysis.tempo = soundcloudData.tempo;
+        console.log(chalk.dim(`Using SoundCloud tempo: ${soundcloudData.tempo} BPM`));
+      }
+      if (soundcloudData.key) {
+        analysis.key = soundcloudData.key;
+        console.log(chalk.dim(`Using SoundCloud key: ${soundcloudData.key}`));
+      }
+    }
+    
+    return analysis;
   }
 
   /**

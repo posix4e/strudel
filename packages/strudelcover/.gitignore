@@ -1,6 +1,7 @@
 .env
 node_modules/
 strudelcover-output/
+audio-library/
 *.wav
 *.mp3
 *.webm
