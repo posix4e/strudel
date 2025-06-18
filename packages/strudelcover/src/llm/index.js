@@ -1,40 +1,38 @@
-import { OpenAIProvider } from './openai.js';
-import { AnthropicProvider } from './anthropic.js';
-import { OllamaProvider } from './ollama.js';
+// Lazy load providers to avoid missing dependencies
+const providerLoaders = {
+  openai: () => import('./openai.js').then(m => m.OpenAIProvider),
+  anthropic: () => import('./anthropic.js').then(m => m.AnthropicProvider),
+  ollama: () => import('./ollama.js').then(m => m.OllamaProvider)
+};
 
 /**
  * LLM Provider Factory
  */
 export class LLMProviderFactory {
-  static providers = {
-    openai: OpenAIProvider,
-    anthropic: AnthropicProvider,
-    ollama: OllamaProvider
-  };
-
   /**
    * Create an LLM provider instance
    * @param {string} provider - Provider name (openai, anthropic, ollama)
    * @param {Object} config - Provider configuration
-   * @returns {BaseLLMProvider}
+   * @returns {Promise<BaseLLMProvider>}
    */
-  static create(provider, config) {
-    const Provider = this.providers[provider.toLowerCase()];
+  static async create(provider, config) {
+    const loader = providerLoaders[provider.toLowerCase()];
     
-    if (!Provider) {
-      throw new Error(`Unknown LLM provider: ${provider}. Available: ${Object.keys(this.providers).join(', ')}`);
+    if (!loader) {
+      throw new Error(`Unknown LLM provider: ${provider}. Available: ${Object.keys(providerLoaders).join(', ')}`);
     }
     
+    const Provider = await loader();
     return new Provider(config);
   }
 
   /**
    * Register a custom provider
    * @param {string} name - Provider name
-   * @param {Class} providerClass - Provider class extending BaseLLMProvider
+   * @param {Function} loader - Function that returns provider class
    */
-  static registerProvider(name, providerClass) {
-    this.providers[name.toLowerCase()] = providerClass;
+  static registerProvider(name, loader) {
+    providerLoaders[name.toLowerCase()] = loader;
   }
 
   /**
@@ -42,12 +40,10 @@ export class LLMProviderFactory {
    * @returns {string[]}
    */
   static getAvailableProviders() {
-    return Object.keys(this.providers);
+    return Object.keys(providerLoaders);
   }
 }
 
 // Export everything
 export { BaseLLMProvider } from './base.js';
-export { OpenAIProvider } from './openai.js';
-export { AnthropicProvider } from './anthropic.js';
-export { OllamaProvider } from './ollama.js';
+// Individual providers are lazy-loaded, export them through the factory

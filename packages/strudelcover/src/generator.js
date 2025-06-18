@@ -1,15 +1,21 @@
 import { LLMProviderFactory } from './llm/index.js';
+import { sparkleEnhance } from './visualizers.js';
 
 /**
  * Strudel pattern generator using LLM
  */
 export class PatternGenerator {
-  constructor(llmProvider) {
-    // Support legacy API - if string passed, assume it's OpenAI API key
-    if (typeof llmProvider === 'string') {
-      this.llm = LLMProviderFactory.create('openai', { apiKey: llmProvider });
-    } else {
-      this.llm = llmProvider;
+  constructor(llmProvider, options = {}) {
+    this.llmProvider = llmProvider;
+    this.sparkleMode = options.sparkle || false;
+  }
+  
+  async initializeLLM() {
+    if (typeof this.llmProvider === 'string') {
+      // Support legacy API - if string passed, assume it's OpenAI API key
+      this.llm = await LLMProviderFactory.create('openai', { apiKey: this.llmProvider });
+    } else if (!this.llm) {
+      this.llm = this.llmProvider;
     }
   }
 
@@ -17,6 +23,7 @@ export class PatternGenerator {
    * Generate initial Strudel pattern from audio analysis
    */
   async generateFromAnalysis(analysis, artistName, songName) {
+    await this.initializeLLM();
     const prompt = this.buildPrompt(analysis, artistName, songName);
     
     const messages = [
@@ -41,13 +48,21 @@ export class PatternGenerator {
       temperature: 0.3 // Lower temperature for more deterministic output
     });
     
-    return this.cleanPattern(completion);
+    let pattern = this.cleanPattern(completion);
+    
+    // Add sparkle enhancements if enabled
+    if (this.sparkleMode) {
+      pattern = sparkleEnhance(pattern);
+    }
+    
+    return pattern;
   }
 
   /**
    * Refine pattern based on comparison
    */
   async refinePattern(currentPattern, comparison, analysis) {
+    await this.initializeLLM();
     const refinementPrompt = this.buildRefinementPrompt(
       currentPattern, 
       comparison, 
@@ -71,7 +86,14 @@ export class PatternGenerator {
       temperature: 0.2
     });
     
-    return this.cleanPattern(completion);
+    let pattern = this.cleanPattern(completion);
+    
+    // Add sparkle enhancements if enabled
+    if (this.sparkleMode) {
+      pattern = sparkleEnhance(pattern);
+    }
+    
+    return pattern;
   }
 
   /**

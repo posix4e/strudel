@@ -17,66 +17,10 @@ const __dirname = dirname(__filename);
 // Load environment variables from project root
 config({ path: resolve(__dirname, '../../../.env') });
 
-// Main program
 program
   .name('strudelcover')
   .description('AI-powered tool to recreate songs as Strudel patterns')
-  .version('0.1.0');
-
-// Spotify login command
-program
-  .command('spotify-login')
-  .description('Login to Spotify for direct song access')
-  .action(async () => {
-    console.log(chalk.blue.bold('\n🎵 Spotify Authentication\n'));
-    
-    try {
-      // Check for Spotify credentials
-      const clientId = process.env.SPOTIFY_CLIENT_ID;
-      const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-      
-      if (!clientId || !clientSecret) {
-        console.error(chalk.red('Error: Spotify credentials not found'));
-        console.log('\nTo use Spotify integration, you need to:');
-        console.log('1. Create a Spotify app at https://developer.spotify.com/dashboard');
-        console.log('2. Set the redirect URI to: http://localhost:8888/callback');
-        console.log('3. Add to your .env file:');
-        console.log('   SPOTIFY_CLIENT_ID=your_client_id');
-        console.log('   SPOTIFY_CLIENT_SECRET=your_client_secret');
-        process.exit(1);
-      }
-      
-      const { SpotifyAuth } = await import('./spotify/auth.js');
-      const auth = new SpotifyAuth(clientId, clientSecret);
-      
-      await auth.authenticate();
-      console.log(chalk.green('\n✅ Successfully authenticated with Spotify!'));
-      console.log(chalk.dim('You can now use Spotify URLs with strudelcover'));
-      
-    } catch (error) {
-      console.error(chalk.red('Authentication failed:'), error.message);
-      process.exit(1);
-    }
-  });
-
-// Spotify logout command
-program
-  .command('spotify-logout')
-  .description('Logout from Spotify')
-  .action(async () => {
-    try {
-      const { SpotifyAuth } = await import('./spotify/auth.js');
-      const auth = new SpotifyAuth('', '');
-      auth.logout();
-    } catch (error) {
-      console.error(chalk.red('Logout failed:'), error.message);
-    }
-  });
-
-// Default cover generation command
-const coverCommand = program
-  .command('cover <input> <artist> <song>', { isDefault: true })
-  .description('Generate a Strudel cover of a song')
+  .version('0.1.0')
   .option('-k, --api-key <key>', 'OpenAI API key (or set OPENAI_API_KEY env var)')
   .option('-o, --output <dir>', 'Output directory', './strudelcover-output')
   .option('-i, --iterations <n>', 'Max refinement iterations', '5')
@@ -133,32 +77,7 @@ const coverCommand = program
             .on('finish', resolve)
             .on('error', reject);
         });
-      } 
-      // Handle Spotify URLs
-      else if (input.includes('spotify:') || input.includes('open.spotify.com')) {
-        spinner.text = 'Fetching from Spotify...';
-        
-        const { SpotifyClient } = await import('./spotify/client.js');
-        const spotifyClient = new SpotifyClient();
-        
-        // Extract track ID from URL or URI
-        let trackId;
-        if (input.includes('spotify:track:')) {
-          trackId = input.split('spotify:track:')[1];
-        } else if (input.includes('open.spotify.com/track/')) {
-          trackId = input.split('track/')[1].split('?')[0];
-        } else {
-          throw new Error('Invalid Spotify URL/URI format');
-        }
-        
-        // Download preview or full track
-        audioPath = await spotifyClient.downloadTrack(trackId, options.output);
-        
-        // Also get track metadata to improve generation
-        const trackInfo = await spotifyClient.getTrackInfo(trackId);
-        console.log(chalk.dim(`Track: ${trackInfo.name} by ${trackInfo.artists.join(', ')}`));
-      }
-      else if (!existsSync(audioPath)) {
+      } else if (!existsSync(audioPath)) {
         spinner.fail(`File not found: ${audioPath}`);
         process.exit(1);
       }
@@ -213,19 +132,9 @@ const coverCommand = program
 // Add examples to help
 program.on('--help', () => {
   console.log('');
-  console.log('Commands:');
-  console.log('  cover <input> <artist> <song>  Generate a Strudel cover (default)');
-  console.log('  spotify-login                  Login to Spotify');
-  console.log('  spotify-logout                 Logout from Spotify');
-  console.log('');
   console.log('Examples:');
   console.log('  # Basic usage (auto mode with default target score of 80)');
   console.log('  $ strudelcover song.mp3 "The Beatles" "Hey Jude"');
-  console.log('');
-  console.log('  # Using Spotify (login first)');
-  console.log('  $ strudelcover spotify-login');
-  console.log('  $ strudelcover spotify:track:3n3Ppam7vgaVa1iaRUc9Lp "Mr. Blue Sky" "ELO"');
-  console.log('  $ strudelcover https://open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp');
   console.log('');
   console.log('  # Using different LLM providers');
   console.log('  $ strudelcover song.mp3 "Artist" "Song" --llm anthropic');
@@ -254,10 +163,8 @@ program.on('--help', () => {
   console.log('  ollama            - Local models, no API key needed');
   console.log('');
   console.log('Environment Variables:');
-  console.log('  OPENAI_API_KEY        OpenAI API key');
-  console.log('  ANTHROPIC_API_KEY     Anthropic API key');
-  console.log('  SPOTIFY_CLIENT_ID     Spotify app client ID');
-  console.log('  SPOTIFY_CLIENT_SECRET Spotify app client secret');
+  console.log('  OPENAI_API_KEY     OpenAI API key');
+  console.log('  ANTHROPIC_API_KEY  Anthropic API key');
 });
 
 program.parse();

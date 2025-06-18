@@ -1,6 +1,7 @@
 import { AudioAnalyzer } from './analyzer.js';
 import { PatternGenerator } from './generator.js';
 import { LLMProviderFactory } from './llm/index.js';
+import { SparkleMode } from './sparkle.js';
 import StrudelAudioExport from '@strudel/audio-export';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
@@ -11,43 +12,16 @@ import chalk from 'chalk';
  */
 export class StrudelCover {
   constructor(options = {}) {
-    // Initialize LLM provider
-    let llmProvider;
+    this.options = options;
     
-    // Legacy support - if openaiKey provided, use OpenAI
-    if (options.openaiKey) {
-      llmProvider = LLMProviderFactory.create('openai', { 
-        apiKey: options.openaiKey,
-        model: options.model 
-      });
-    } 
-    // New way - explicit provider configuration
-    else if (options.llm) {
-      if (typeof options.llm === 'string') {
-        // Simple provider name, must have API key in env or config
-        const envKey = `${options.llm.toUpperCase()}_API_KEY`;
-        const apiKey = options.llmConfig?.apiKey || process.env[envKey];
-        
-        if (!apiKey && options.llm !== 'ollama') {
-          throw new Error(`${options.llm} requires API key via llmConfig.apiKey or ${envKey} env var`);
-        }
-        
-        llmProvider = LLMProviderFactory.create(options.llm, {
-          apiKey,
-          ...options.llmConfig
-        });
-      } else {
-        // Direct provider instance
-        llmProvider = options.llm;
-      }
-    } else {
-      throw new Error('LLM configuration required. Use options.openaiKey (legacy) or options.llm');
-    }
+    // Sparkle mode!
+    this.sparkleMode = options.sparkle || false;
+    this.sparkle = this.sparkleMode ? new SparkleMode() : null;
     
     this.analyzer = new AudioAnalyzer();
-    this.generator = new PatternGenerator(llmProvider);
+    
     this.exporter = new StrudelAudioExport({ 
-      headless: true,
+      headless: !this.sparkleMode, // Show browser in sparkle mode
       duration: 30 // Default to 30 seconds
     });
     
@@ -87,27 +61,91 @@ export class StrudelCover {
   }
 
   /**
+   * Initialize LLM provider
+   */
+  async initializeLLM() {
+    if (this.generator) return; // Already initialized
+    
+    let llmProvider;
+    
+    // Legacy support - if openaiKey provided, use OpenAI
+    if (this.options.openaiKey) {
+      llmProvider = await LLMProviderFactory.create('openai', { 
+        apiKey: this.options.openaiKey,
+        model: this.options.model 
+      });
+    } 
+    // New way - explicit provider configuration
+    else if (this.options.llm) {
+      if (typeof this.options.llm === 'string') {
+        // Simple provider name, must have API key in env or config
+        const envKey = `${this.options.llm.toUpperCase()}_API_KEY`;
+        const apiKey = this.options.llmConfig?.apiKey || process.env[envKey];
+        
+        if (!apiKey && this.options.llm !== 'ollama') {
+          throw new Error(`${this.options.llm} requires API key via llmConfig.apiKey or ${envKey} env var`);
+        }
+        
+        llmProvider = await LLMProviderFactory.create(this.options.llm, {
+          apiKey,
+          ...this.options.llmConfig
+        });
+      } else {
+        // Direct provider instance
+        llmProvider = this.options.llm;
+      }
+    } else {
+      throw new Error('LLM configuration required. Use options.openaiKey (legacy) or options.llm');
+    }
+    
+    this.generator = new PatternGenerator(llmProvider, { sparkle: this.sparkleMode });
+  }
+
+  /**
    * Main cover generation function
    */
   async cover(songPath, artistName, songName, options = {}) {
+    // Initialize LLM provider if not already done
+    await this.initializeLLM();
+    
+    if (this.sparkleMode) {
+      await this.sparkle.showIntro();
+      await this.sparkle.glitchEffect();
+    }
+    
     console.log(chalk.blue(`\n🎵 StrudelCover: "${songName}" by ${artistName}\n`));
     
     try {
       // Step 1: Analyze original song
       console.log(chalk.gray('Analyzing original audio...'));
       const originalAnalysis = await this.analyzer.analyze(songPath);
-      this.logAnalysis('Original', originalAnalysis);
+      
+      if (this.sparkleMode) {
+        await this.sparkle.showAnalysisVisualization(originalAnalysis);
+      } else {
+        this.logAnalysis('Original', originalAnalysis);
+      }
       
       // Step 2: Generate initial pattern
       console.log(chalk.gray('\nGenerating initial Strudel pattern...'));
+      
+      if (this.sparkleMode) {
+        const prompt = this.generator.buildPrompt(originalAnalysis, artistName, songName);
+        await this.sparkle.showLLMThinking(prompt);
+      }
+      
       let pattern = await this.generator.generateFromAnalysis(
         originalAnalysis, 
         artistName, 
         songName
       );
       
-      console.log(chalk.green('Initial pattern:'));
-      console.log(chalk.gray(pattern));
+      if (this.sparkleMode) {
+        this.sparkle.showGeneratedCode(pattern);
+      } else {
+        console.log(chalk.green('Initial pattern:'));
+        console.log(chalk.gray(pattern));
+      }
       
       // Step 3: Iterative refinement
       let iteration = 0;
@@ -121,6 +159,10 @@ export class StrudelCover {
         // Export current pattern to audio
         const audioPath = join(this.outputDir, `iteration-${iteration}.wav`);
         console.log(chalk.gray('Exporting pattern to audio...'));
+        
+        if (this.sparkleMode) {
+          await this.sparkle.showExportProgress(Math.min(originalAnalysis.duration, 30));
+        }
         
         await this.exporter.exportToFile(pattern, audioPath, {
           duration: Math.min(originalAnalysis.duration, 30),
@@ -146,8 +188,12 @@ export class StrudelCover {
           audioPath
         });
         
-        console.log(chalk.yellow(`Score: ${comparison.score}/100`));
-        this.logComparison(comparison);
+        if (this.sparkleMode) {
+          this.sparkle.showComparison(comparison);
+        } else {
+          console.log(chalk.yellow(`Score: ${comparison.score}/100`));
+          this.logComparison(comparison);
+        }
         
         // Update best if improved
         if (comparison.score > bestScore) {
@@ -267,5 +313,6 @@ export class StrudelCover {
 // Export everything
 export { AudioAnalyzer } from './analyzer.js';
 export { PatternGenerator } from './generator.js';
-export { LLMProviderFactory, BaseLLMProvider, OpenAIProvider, AnthropicProvider, OllamaProvider } from './llm/index.js';
+export { LLMProviderFactory, BaseLLMProvider } from './llm/index.js';
+export { SparkleMode } from './sparkle.js';
 export default StrudelCover;

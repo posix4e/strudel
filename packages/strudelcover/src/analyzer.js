@@ -203,6 +203,11 @@ export class AudioAnalyzer {
    * Main analysis function
    */
   async analyze(audioPath) {
+    // Check if this is Spotify synthetic data
+    if (audioPath.endsWith('.json') && audioPath.includes('spotify-synthetic')) {
+      return this.analyzeSpotifySynthetic(audioPath);
+    }
+    
     // Convert to WAV if needed
     const wavPath = audioPath.endsWith('.wav') ? audioPath : 
       await this.convertToWav(audioPath);
@@ -233,6 +238,60 @@ export class AudioAnalyzer {
       rhythm,
       features: avgFeatures,
       timeSeries: features
+    };
+  }
+
+  /**
+   * Analyze Spotify synthetic data (when no preview is available)
+   */
+  analyzeSpotifySynthetic(jsonPath) {
+    const data = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+    
+    // Map Spotify key to note names
+    const keyMap = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const key = keyMap[data.key] || 'C';
+    
+    // Estimate rhythm patterns based on features
+    const rhythm = {
+      kick: [],
+      snare: [],
+      hihat: []
+    };
+    
+    // Generate typical patterns based on energy and danceability
+    if (data.danceability > 0.6) {
+      // Four-on-the-floor for danceable tracks
+      rhythm.kick = [0, 1, 2, 3];
+      rhythm.snare = [1, 3];
+      rhythm.hihat = data.energy > 0.7 ? [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5] : [0, 1, 2, 3];
+    } else if (data.energy > 0.5) {
+      // Rock/pop pattern
+      rhythm.kick = [0, 2];
+      rhythm.snare = [1, 3];
+      rhythm.hihat = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5];
+    } else {
+      // Minimal pattern for low energy
+      rhythm.kick = [0];
+      rhythm.snare = [2];
+      rhythm.hihat = [0, 1, 2, 3];
+    }
+    
+    // Map Spotify features to our analysis format
+    const features = {
+      rms: data.loudness ? Math.max(0, (data.loudness + 60) / 60) : 0.5,
+      energy: data.energy || 0.5,
+      spectralCentroid: data.valence ? data.valence * 5000 : 2500, // Brightness from valence
+      zcr: data.acousticness ? 1 - data.acousticness : 0.5
+    };
+    
+    return {
+      duration: data.duration,
+      tempo: data.tempo,
+      key,
+      rhythm,
+      features,
+      timeSeries: [],
+      spotifyFeatures: data // Include original Spotify data
     };
   }
 
