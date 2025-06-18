@@ -23,7 +23,6 @@ program
   .option('-o, --output <dir>', 'Output directory', './strudelcover-output')
   .option('-i, --iterations <n>', 'Max refinement iterations', '5')
   .option('-t, --target <score>', 'Target similarity score (0-100)', '80')
-  .option('--no-llm', 'Skip LLM generation (use basic patterns only)')
   .option('-d, --duration <seconds>', 'Max duration to analyze', '30')
   .action(async (input, artist, song, options) => {
     console.log(chalk.blue.bold('\n🎸 StrudelCover - AI Song Recreation\n'));
@@ -33,7 +32,7 @@ program
     try {
       // Get API key
       const apiKey = options.apiKey || process.env.OPENAI_API_KEY;
-      if (!apiKey && !options.noLlm) {
+      if (!apiKey) {
         spinner.fail('OpenAI API key required (use --api-key or set OPENAI_API_KEY)');
         process.exit(1);
       }
@@ -73,7 +72,6 @@ program
       
       // Generate cover
       const results = await cover.cover(audioPath, artist, song, {
-        noLLM: options.noLlm,
         duration: parseInt(options.duration)
       });
       
@@ -97,7 +95,6 @@ program.on('--help', () => {
   console.log('  $ strudelcover song.mp3 "The Beatles" "Hey Jude"');
   console.log('  $ strudelcover https://youtube.com/watch?v=... "Artist" "Song"');
   console.log('  $ strudelcover audio.wav "Daft Punk" "Get Lucky" --iterations 10');
-  console.log('  $ strudelcover song.mp3 "Queen" "Bohemian Rhapsody" --no-llm');
   console.log('');
   console.log('Environment Variables:');
   console.log('  OPENAI_API_KEY    Your OpenAI API key for pattern generation');

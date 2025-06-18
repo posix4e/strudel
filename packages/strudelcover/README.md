@@ -19,7 +19,7 @@ npm install @strudel/strudelcover
 
 You'll also need:
 - FFmpeg for audio conversion
-- OpenAI API key for AI-powered pattern generation (optional)
+- OpenAI API key (required)
 
 ## Usage
 
@@ -38,8 +38,6 @@ strudelcover song.wav "Daft Punk" "Get Lucky" \
   --target 85 \
   --output ./covers/daft-punk
 
-# Without AI (basic pattern generation)
-strudelcover song.mp3 "Artist" "Song" --no-llm
 ```
 
 ### API
@@ -69,7 +67,6 @@ console.log(results.bestScore);   // Similarity score (0-100)
 - `-o, --output <dir>` - Output directory (default: ./strudelcover-output)
 - `-i, --iterations <n>` - Max refinement iterations (default: 5)
 - `-t, --target <score>` - Target similarity score 0-100 (default: 80)
-- `--no-llm` - Skip AI generation, use basic patterns only
 - `-d, --duration <seconds>` - Max duration to analyze (default: 30)
 
 ## Output
@@ -102,7 +99,7 @@ The similarity score (0-100) is calculated based on:
 
 ### Recreate a Simple Beat
 ```bash
-strudelcover drums.wav "Producer" "Beat Name" --no-llm
+strudelcover drums.wav "Producer" "Beat Name"
 ```
 
 ### Cover a Pop Song

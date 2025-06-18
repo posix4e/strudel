@@ -1,28 +1,37 @@
 import StrudelCover from '../src/index.js';
+import { config } from 'dotenv';
 
-// Example: Generate a cover without LLM (using basic pattern generation)
-async function basicExample() {
-  console.log('StrudelCover Basic Example\n');
+// Load environment variables
+config();
+
+// Example: Generate a cover using AI
+async function example() {
+  console.log('StrudelCover Example\n');
   
-  const cover = new StrudelCover({
-    outputDir: './example-output',
-    maxIterations: 3,
-    targetScore: 70
-  });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    console.error('Error: OPENAI_API_KEY environment variable required');
+    process.exit(1);
+  }
   
-  // You'll need to provide your own audio file
   const audioFile = process.argv[2];
   if (!audioFile) {
     console.error('Usage: node basic.js <audio-file>');
     process.exit(1);
   }
   
+  const cover = new StrudelCover({
+    openaiKey: apiKey,
+    outputDir: './example-output',
+    maxIterations: 3,
+    targetScore: 70
+  });
+  
   try {
     const results = await cover.cover(
       audioFile,
       'Example Artist',
-      'Example Song',
-      { noLLM: true } // Use basic pattern generation
+      'Example Song'
     );
     
     console.log('\nResults:');
@@ -34,4 +43,4 @@ async function basicExample() {
   }
 }
 
-basicExample();
+example();

@@ -10,9 +10,12 @@ import chalk from 'chalk';
  */
 export class StrudelCover {
   constructor(options = {}) {
+    if (!options.openaiKey) {
+      throw new Error('OpenAI API key is required');
+    }
+    
     this.analyzer = new AudioAnalyzer();
-    this.generator = options.openaiKey ? 
-      new PatternGenerator(options.openaiKey) : null;
+    this.generator = new PatternGenerator(options.openaiKey);
     this.exporter = new StrudelAudioExport({ 
       headless: true,
       duration: 30 // Default to 30 seconds
@@ -42,18 +45,11 @@ export class StrudelCover {
       
       // Step 2: Generate initial pattern
       console.log(chalk.gray('\nGenerating initial Strudel pattern...'));
-      let pattern;
-      if (this.generator && !options.noLLM) {
-        pattern = await this.generator.generateFromAnalysis(
-          originalAnalysis, 
-          artistName, 
-          songName
-        );
-      } else {
-        // Use basic pattern generation
-        const generator = this.generator || new PatternGenerator();
-        pattern = generator.generateBasicPattern(originalAnalysis);
-      }
+      const pattern = await this.generator.generateFromAnalysis(
+        originalAnalysis, 
+        artistName, 
+        songName
+      );
       
       console.log(chalk.green('Initial pattern:'));
       console.log(chalk.gray(pattern));
@@ -110,7 +106,7 @@ export class StrudelCover {
         }
         
         // Refine pattern
-        if (this.generator && !options.noLLM && iteration < this.maxIterations - 1) {
+        if (iteration < this.maxIterations - 1) {
           console.log(chalk.gray('\nRefining pattern...'));
           pattern = await this.generator.refinePattern(
             pattern,
@@ -119,8 +115,6 @@ export class StrudelCover {
           );
           console.log(chalk.green('Refined pattern:'));
           console.log(chalk.gray(pattern));
-        } else {
-          break; // No LLM or max iterations
         }
         
         iteration++;
