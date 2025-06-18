@@ -117,12 +117,19 @@ export class AudioAnalyzer {
     // Find most common interval (simplified)
     intervals.sort((a, b) => a - b);
     const medianInterval = intervals[Math.floor(intervals.length / 2)];
-    const bpm = 60 / medianInterval;
+    let bpm = 60 / medianInterval;
     
     // Normalize to reasonable range
-    if (bpm < 60) return bpm * 2;
-    if (bpm > 200) return bpm / 2;
-    return Math.round(bpm);
+    while (bpm < 60) bpm *= 2;
+    while (bpm > 200) bpm /= 2;
+    
+    // Common tempos
+    const commonTempos = [60, 70, 80, 90, 100, 110, 120, 128, 130, 140, 150, 160, 170, 180];
+    const closest = commonTempos.reduce((prev, curr) => 
+      Math.abs(curr - bpm) < Math.abs(prev - bpm) ? curr : prev
+    );
+    
+    return closest;
   }
 
   /**
@@ -214,7 +221,7 @@ export class AudioAnalyzer {
     // Calculate average features
     const avgFeatures = {
       rms: features.reduce((sum, f) => sum + (f.rms || 0), 0) / features.length,
-      energy: features.reduce((sum, f) => sum + (f.energy || 0), 0) / features.length,
+      energy: Math.min(1, features.reduce((sum, f) => sum + (f.energy || 0), 0) / features.length / 100), // Normalize
       spectralCentroid: features.reduce((sum, f) => sum + (f.spectralCentroid || 0), 0) / features.length,
       zcr: features.reduce((sum, f) => sum + (f.zcr || 0), 0) / features.length
     };
@@ -232,7 +239,7 @@ export class AudioAnalyzer {
   /**
    * Compare two audio analyses
    */
-  compareAnalyses(analysis1, analysis2) {
+  compareAnalyses(analysis1, analysis2, customWeights = null) {
     const comparison = {
       tempoDiff: Math.abs(analysis1.tempo - analysis2.tempo),
       keyMatch: analysis1.key === analysis2.key,
@@ -258,15 +265,24 @@ export class AudioAnalyzer {
       score: 0
     };
     
+    // Use custom weights if provided, otherwise use defaults
+    const weights = customWeights || {
+      tempo: 0.3,
+      key: 0.2,
+      energy: 0.1,
+      brightness: 0.1,
+      kickSimilarity: 0.15,
+      snareSimilarity: 0.15
+    };
+    
     // Calculate overall similarity score
     comparison.score = Math.round(
-      (100 - comparison.tempoDiff) * 0.3 +
-      (comparison.keyMatch ? 20 : 0) +
-      (1 - comparison.rmsDiff) * 100 * 0.1 +
-      (1 - comparison.energyDiff) * 100 * 0.1 +
-      (1 - comparison.brightnessDiff) * 100 * 0.1 +
-      comparison.kickSimilarity * 100 * 0.15 +
-      comparison.snareSimilarity * 100 * 0.15
+      (100 - comparison.tempoDiff) * weights.tempo +
+      (comparison.keyMatch ? 100 : 0) * weights.key +
+      (1 - comparison.energyDiff) * 100 * weights.energy +
+      (1 - comparison.brightnessDiff) * 100 * weights.brightness +
+      comparison.kickSimilarity * 100 * weights.kickSimilarity +
+      comparison.snareSimilarity * 100 * weights.snareSimilarity
     );
     
     return comparison;

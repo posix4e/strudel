@@ -21,8 +21,33 @@ export class StrudelCover {
       duration: 30 // Default to 30 seconds
     });
     
+    // Auto mode defaults
+    this.autoMode = options.autoMode !== false; // Default to true
     this.maxIterations = options.maxIterations || 5;
     this.targetScore = options.targetScore || 80;
+    
+    // Per-metric thresholds (used when autoMode is false)
+    this.thresholds = {
+      tempo: options.thresholds?.tempo || 5,        // Max BPM difference
+      key: options.thresholds?.key !== false,       // Must match? (boolean)
+      energy: options.thresholds?.energy || 0.1,    // Max energy difference
+      brightness: options.thresholds?.brightness || 0.2, // Max brightness difference  
+      kickSimilarity: options.thresholds?.kickSimilarity || 0.7,    // Min similarity
+      snareSimilarity: options.thresholds?.snareSimilarity || 0.7,  // Min similarity
+      ...options.thresholds // Allow overrides
+    };
+    
+    // Metric weights for scoring
+    this.weights = {
+      tempo: options.weights?.tempo || 0.3,
+      key: options.weights?.key || 0.2,
+      energy: options.weights?.energy || 0.1,
+      brightness: options.weights?.brightness || 0.1,
+      kickSimilarity: options.weights?.kickSimilarity || 0.15,
+      snareSimilarity: options.weights?.snareSimilarity || 0.15,
+      ...options.weights // Allow overrides
+    };
+    
     this.outputDir = options.outputDir || './strudelcover-output';
     
     // Create output directory
@@ -45,7 +70,7 @@ export class StrudelCover {
       
       // Step 2: Generate initial pattern
       console.log(chalk.gray('\nGenerating initial Strudel pattern...'));
-      const pattern = await this.generator.generateFromAnalysis(
+      let pattern = await this.generator.generateFromAnalysis(
         originalAnalysis, 
         artistName, 
         songName
@@ -76,10 +101,11 @@ export class StrudelCover {
         console.log(chalk.gray('Analyzing generated audio...'));
         const generatedAnalysis = await this.analyzer.analyze(audioPath);
         
-        // Compare analyses
+        // Compare analyses with custom weights if provided
         const comparison = this.analyzer.compareAnalyses(
           originalAnalysis, 
-          generatedAnalysis
+          generatedAnalysis,
+          this.autoMode ? null : this.weights
         );
         
         history.push({
@@ -100,8 +126,12 @@ export class StrudelCover {
         }
         
         // Check if target reached
-        if (comparison.score >= this.targetScore) {
-          console.log(chalk.green(`\n✅ Target score reached!`));
+        const targetReached = this.autoMode 
+          ? comparison.score >= this.targetScore
+          : this.checkThresholds(comparison);
+          
+        if (targetReached) {
+          console.log(chalk.green(`\n✅ Target ${this.autoMode ? 'score' : 'thresholds'} reached!`));
           break;
         }
         
@@ -178,6 +208,29 @@ export class StrudelCover {
     console.log(`  Brightness difference: ${comparison.brightnessDiff.toFixed(3)}`);
     console.log(`  Kick similarity: ${(comparison.kickSimilarity * 100).toFixed(0)}%`);
     console.log(`  Snare similarity: ${(comparison.snareSimilarity * 100).toFixed(0)}%`);
+  }
+  
+  /**
+   * Check if all thresholds are met (manual mode)
+   */
+  checkThresholds(comparison) {
+    const checks = {
+      tempo: comparison.tempoDiff <= this.thresholds.tempo,
+      key: !this.thresholds.key || comparison.keyMatch,
+      energy: comparison.energyDiff <= this.thresholds.energy,
+      brightness: comparison.brightnessDiff <= this.thresholds.brightness,
+      kickSimilarity: comparison.kickSimilarity >= this.thresholds.kickSimilarity,
+      snareSimilarity: comparison.snareSimilarity >= this.thresholds.snareSimilarity
+    };
+    
+    // Log threshold status
+    console.log(chalk.cyan('Threshold Status:'));
+    Object.entries(checks).forEach(([metric, passed]) => {
+      console.log(`  ${metric}: ${passed ? chalk.green('✓') : chalk.red('✗')}`);
+    });
+    
+    // All must pass
+    return Object.values(checks).every(passed => passed);
   }
 }
 

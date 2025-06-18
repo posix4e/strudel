@@ -15,13 +15,18 @@ export class PatternGenerator {
     const prompt = this.buildPrompt(analysis, artistName, songName);
     
     const completion = await this.openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are an expert at creating Strudel (TidalCycles-like) live coding patterns. 
+          content: `You are an expert at creating Strudel live coding patterns. 
                     Generate patterns that accurately recreate songs based on audio analysis data.
-                    Only respond with valid Strudel code, no explanations.`
+                    Use Strudel syntax, NOT TidalCycles. Key differences:
+                    - Use setcps() not cps
+                    - Use s() for samples, n() for notes
+                    - Use .stack() not $ and #
+                    - Chain methods with dots
+                    Only respond with valid Strudel JavaScript code, no explanations.`
         },
         {
           role: "user",
@@ -45,7 +50,7 @@ export class PatternGenerator {
     );
     
     const completion = await this.openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -89,9 +94,26 @@ Create a complete Strudel pattern that includes:
 1. Drum pattern matching the detected rhythm
 2. A bassline in the key of ${key}
 3. Appropriate tempo setting
-4. Any additional elements that match the energy and brightness levels
 
-Use Strudel syntax with functions like s(), n(), stack(), setcps(), etc.`;
+You must return EXACTLY this format:
+
+setcps(VALUE)
+
+$: stack(
+  s("bd*4"),
+  s("sd*2"),
+  s("hh*8").gain(0.5),
+  n("0 3 5 7").s("bass")
+).room(0.2)
+
+RULES:
+- First line: setcps() with tempo value
+- Second line: empty
+- Third line: "$: stack("
+- Use s() for drums: bd, sd, hh, cp
+- Use n() for notes with .s("bass") or .s("sawtooth")
+- NO methods like .step(), .t(), etc
+- Only use: .gain(), .room(), .speed(), .slow()`;
   }
 
   /**

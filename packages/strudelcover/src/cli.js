@@ -7,10 +7,15 @@ import ora from 'ora';
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
 import ytdl from 'ytdl-core';
-import { join } from 'path';
+import { join, resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Load environment variables
-config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from project root
+config({ path: resolve(__dirname, '../../../.env') });
 
 program
   .name('strudelcover')
@@ -24,6 +29,13 @@ program
   .option('-i, --iterations <n>', 'Max refinement iterations', '5')
   .option('-t, --target <score>', 'Target similarity score (0-100)', '80')
   .option('-d, --duration <seconds>', 'Max duration to analyze', '30')
+  .option('-m, --manual', 'Use manual threshold mode instead of auto score mode')
+  .option('--tempo-threshold <bpm>', 'Max tempo difference (BPM)', '5')
+  .option('--energy-threshold <diff>', 'Max energy difference', '0.1')
+  .option('--brightness-threshold <diff>', 'Max brightness difference', '0.2')
+  .option('--kick-threshold <similarity>', 'Min kick pattern similarity', '0.7')
+  .option('--snare-threshold <similarity>', 'Min snare pattern similarity', '0.7')
+  .option('--require-key-match', 'Require exact key match')
   .action(async (input, artist, song, options) => {
     console.log(chalk.blue.bold('\n🎸 StrudelCover - AI Song Recreation\n'));
     
@@ -42,7 +54,13 @@ program
       if (input.includes('youtube.com') || input.includes('youtu.be')) {
         spinner.text = 'Downloading from YouTube...';
         
-        const info = await ytdl.getInfo(input);
+        let info;
+        try {
+          info = await ytdl.getInfo(input);
+        } catch (err) {
+          throw new Error(`YouTube download failed: ${err.message}`);
+        }
+        
         const audioFormat = ytdl.chooseFormat(info.formats, { 
           quality: 'highestaudio',
           filter: 'audioonly' 
@@ -63,12 +81,27 @@ program
       spinner.succeed('Ready to create cover!');
       
       // Create StrudelCover instance
-      const cover = new StrudelCover({
+      const coverOptions = {
         openaiKey: apiKey,
         outputDir: options.output,
         maxIterations: parseInt(options.iterations),
-        targetScore: parseInt(options.target)
-      });
+        targetScore: parseInt(options.target),
+        autoMode: !options.manual
+      };
+      
+      // Add manual mode thresholds if specified
+      if (options.manual) {
+        coverOptions.thresholds = {
+          tempo: parseFloat(options.tempoThreshold || 5),
+          key: options.requireKeyMatch || false,
+          energy: parseFloat(options.energyThreshold || 0.1),
+          brightness: parseFloat(options.brightnessThreshold || 0.2),
+          kickSimilarity: parseFloat(options.kickThreshold || 0.7),
+          snareSimilarity: parseFloat(options.snareThreshold || 0.7)
+        };
+      }
+      
+      const cover = new StrudelCover(coverOptions);
       
       // Generate cover
       const results = await cover.cover(audioPath, artist, song, {
@@ -81,9 +114,7 @@ program
     } catch (error) {
       spinner.fail('Cover generation failed');
       console.error(chalk.red('Error:'), error.message);
-      if (error.stack && process.env.DEBUG) {
-        console.error(error.stack);
-      }
+      console.error(chalk.gray(error.stack));
       process.exit(1);
     }
   });
@@ -92,9 +123,22 @@ program
 program.on('--help', () => {
   console.log('');
   console.log('Examples:');
+  console.log('  # Basic usage (auto mode with default target score of 80)');
   console.log('  $ strudelcover song.mp3 "The Beatles" "Hey Jude"');
-  console.log('  $ strudelcover https://youtube.com/watch?v=... "Artist" "Song"');
-  console.log('  $ strudelcover audio.wav "Daft Punk" "Get Lucky" --iterations 10');
+  console.log('');
+  console.log('  # Custom target score and iterations');
+  console.log('  $ strudelcover audio.wav "Daft Punk" "Get Lucky" --iterations 10 --target 90');
+  console.log('');
+  console.log('  # Manual threshold mode');
+  console.log('  $ strudelcover song.mp3 "Artist" "Song" --manual --tempo-threshold 3 --require-key-match');
+  console.log('');
+  console.log('  # YouTube URL with custom thresholds');
+  console.log('  $ strudelcover https://youtube.com/watch?v=... "Artist" "Song" \\');
+  console.log('    --manual --kick-threshold 0.8 --snare-threshold 0.8');
+  console.log('');
+  console.log('Modes:');
+  console.log('  Auto Mode (default):   Uses overall similarity score (0-100)');
+  console.log('  Manual Mode (--manual): Must meet all specified thresholds');
   console.log('');
   console.log('Environment Variables:');
   console.log('  OPENAI_API_KEY    Your OpenAI API key for pattern generation');
