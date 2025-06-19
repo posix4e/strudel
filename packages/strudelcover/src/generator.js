@@ -1,6 +1,8 @@
 import { LLMProviderFactory } from './llm/index.js';
 import { sparkleEnhance } from './visualizers.js';
 import { keyToMidi, getScaleMidiNumbers } from './note-converter.js';
+import { DRUM_PATTERNS, selectDrumPattern, generateDrumStack } from './drum-patterns.js';
+import { ensureCorrectTempo, extractTempo } from './tempo-utils.js';
 
 /**
  * Strudel pattern generator using LLM
@@ -51,6 +53,9 @@ export class PatternGenerator {
     
     let pattern = this.cleanPattern(completion);
     
+    // Ensure correct tempo
+    pattern = ensureCorrectTempo(pattern, analysis.tempo);
+    
     // Add sparkle enhancements if enabled
     if (this.sparkleMode) {
       pattern = sparkleEnhance(pattern);
@@ -89,6 +94,9 @@ export class PatternGenerator {
     
     let pattern = this.cleanPattern(completion);
     
+    // Ensure correct tempo is maintained
+    pattern = ensureCorrectTempo(pattern, analysis.tempo);
+    
     // Add sparkle enhancements if enabled
     if (this.sparkleMode) {
       pattern = sparkleEnhance(pattern);
@@ -105,6 +113,9 @@ export class PatternGenerator {
     
     // Get MIDI numbers for the key
     const scale = getScaleMidiNumbers(key, 3);
+    
+    // Select appropriate drum pattern
+    const suggestedDrumPattern = selectDrumPattern(tempo, features.energy);
     
     return `Create a Strudel pattern for "${songName}" by ${artistName}.
 
@@ -137,21 +148,26 @@ Key information:
 - Brightness: ${features.spectralCentroid.toFixed(0)} Hz (${this.describeBrightness(features.spectralCentroid)})
 
 Available Strudel features to use:
-- Drums: s("bd"), s("sd"), s("hh"), s("cp"), s("bd:1"), s("sd:1")
-- Synths: s("sawtooth"), s("square"), s("triangle"), note().sound("sine")
+- Drums: s("bd"), s("sd"), s("hh"), s("cp"), s("oh"), s("rd"), s("sh")
+- Synths: s("sawtooth"), s("square"), s("triangle"), s("sine")
 - Effects: .gain(), .room(), .delay(), .pan(), .speed(), .slow(), .fast()
 - Patterns: Can use *, /, <>, [], ~ for complex rhythms
 - Notes: Use n() with MIDI numbers (60 = C4, 72 = C5)
 
-Example of a more complex pattern:
-setcps(0.5)
+Suggested drum pattern (${suggestedDrumPattern.description}):
+${generateDrumStack(suggestedDrumPattern, 0.6)}
+
+Example pattern structure:
+setcps(${tempo}/60/4)
 $: stack(
-  s("bd:5 ~ bd:5 ~").gain(0.8),
-  s("~ sd:3 ~ sd:3").gain(0.7),
-  s("hh*16").gain(0.4).pan(sine.range(0,1)),
-  n("<36 39 43 46>").s("bass").gain(0.6),  // C2 Eb2 G2 Bb2
-  n("60 63 67 <70 72>").s("sawtooth").gain(0.3).room(0.5),  // C4 Eb4 G4 Bb4/C5
-  n("~ ~ <72 75> ~").s("square").gain(0.2).delay(0.125)  // C5 Eb5
+  // Drums
+  ${generateDrumStack(suggestedDrumPattern, 0.7)},
+  // Bass (root notes)
+  n("${scale.root - 24} ~ ${scale.root - 12} ~").s("sawtooth").gain(0.4).lpf(800),
+  // Chords/pads
+  n("<${scale.root} ${scale.third} ${scale.fifth}>").s("square").gain(0.2).room(0.5),
+  // Lead melody
+  n("~ ${scale.root + 12} ~ ${scale.fifth + 12}").s("triangle").gain(0.3).delay(0.25)
 ).room(0.3)
 
 Create something that captures the feel of "${songName}" by ${artistName}.`;
