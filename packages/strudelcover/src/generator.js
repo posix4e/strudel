@@ -17,11 +17,13 @@ export class PatternGenerator {
   }
   
   async initializeLLM() {
-    if (typeof this.llmProvider === 'string') {
-      // Support legacy API - if string passed, assume it's OpenAI API key
-      this.llm = await LLMProviderFactory.create('openai', { apiKey: this.llmProvider });
-    } else if (!this.llm) {
-      this.llm = this.llmProvider;
+    if (!this.llm) {
+      if (typeof this.llmProvider === 'string') {
+        // Support legacy API - if string passed, assume it's OpenAI API key
+        this.llm = await LLMProviderFactory.create('openai', { apiKey: this.llmProvider });
+      } else {
+        this.llm = this.llmProvider;
+      }
     }
   }
 
@@ -157,7 +159,7 @@ Key information:
 
 Available Strudel features to use:
 - Drums: s("bd"), s("sd"), s("hh"), s("cp"), s("oh"), s("rd"), s("sh")
-- Synths: s("sawtooth"), s("square"), s("triangle"), s("sine")
+- Synths: s("sawtooth"), s("square"), s("tri"), s("sine")
 - Effects: .gain(), .room(), .delay(), .pan(), .speed(), .slow(), .fast()
 - Patterns: Can use *, /, <>, [], ~ for complex rhythms
 - Notes: Use n() with MIDI numbers (60 = C4, 72 = C5)
@@ -175,7 +177,7 @@ $: stack(
   // Chords/pads
   n("<${scale.root} ${scale.third} ${scale.fifth}>").s("square").gain(0.2).room(0.5),
   // Lead melody
-  n("~ ${scale.root + 12} ~ ${scale.fifth + 12}").s("triangle").gain(0.3).delay(0.25)
+  n("~ ${scale.root + 12} ~ ${scale.fifth + 12}").s("tri").gain(0.3).delay(0.25)
 ).room(0.3)
 
 Create something that captures the feel of "${songName}" by ${artistName}.`;
