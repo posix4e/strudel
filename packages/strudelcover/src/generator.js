@@ -17,11 +17,13 @@ export class PatternGenerator {
   }
   
   async initializeLLM() {
-    if (typeof this.llmProvider === 'string') {
-      // Support legacy API - if string passed, assume it's OpenAI API key
-      this.llm = await LLMProviderFactory.create('openai', { apiKey: this.llmProvider });
-    } else if (!this.llm) {
-      this.llm = this.llmProvider;
+    if (!this.llm) {
+      if (typeof this.llmProvider === 'string') {
+        // Support legacy API - if string passed, assume it's OpenAI API key
+        this.llm = await LLMProviderFactory.create('openai', { apiKey: this.llmProvider });
+      } else {
+        this.llm = this.llmProvider;
+      }
     }
   }
 

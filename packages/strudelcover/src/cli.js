@@ -45,6 +45,7 @@ const coverCommand = program
   .option('--require-key-match', 'Require exact key match')
   .option('-s, --sparkle', 'SPARKLE MODE: Maximum visual effects and cyber aesthetics')
   .option('-c, --complex', 'COMPLEX MODE: Generate full-length songs with multiple sections')
+  .option('--dazzle', 'DAZZLE MODE: Visual dashboard with layer-by-layer building')
   .action(async (input, artist, song, options) => {
     console.log(chalk.blue.bold('\n🎸 StrudelCover - AI Song Recreation\n'));
     
@@ -83,7 +84,8 @@ const coverCommand = program
         targetScore: parseInt(options.target),
         autoMode: !options.manual,
         sparkle: options.sparkle,
-        complex: options.complex
+        complex: options.complex,
+        dazzle: options.dazzle
       };
       
       // Add manual mode thresholds if specified
@@ -138,6 +140,9 @@ program.on('--help', () => {
   console.log('');
   console.log('  # SPARKLE MODE - Maximum visual effects');
   console.log('  $ strudelcover song.mp3 "Artist" "Song" --sparkle');
+  console.log('');
+  console.log('  # DAZZLE MODE - Visual dashboard with hierarchical building');
+  console.log('  $ strudelcover song.mp3 "Artist" "Song" --dazzle');
   console.log('');
   console.log('Modes:');
   console.log('  Auto Mode (default):   Uses overall similarity score (0-100)');

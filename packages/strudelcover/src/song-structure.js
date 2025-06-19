@@ -3,63 +3,99 @@
  */
 
 /**
- * Common song structures
+ * Common song structures - Extended versions for full songs
  */
 export const SONG_STRUCTURES = {
   pop: {
     name: 'Pop/Rock',
     sections: [
-      { type: 'intro', bars: 4, energy: 0.3 },
-      { type: 'verse', bars: 8, energy: 0.5 },
-      { type: 'chorus', bars: 8, energy: 0.8 },
-      { type: 'verse', bars: 8, energy: 0.5 },
-      { type: 'chorus', bars: 8, energy: 0.8 },
-      { type: 'bridge', bars: 8, energy: 0.6 },
-      { type: 'chorus', bars: 8, energy: 0.9 },
-      { type: 'outro', bars: 4, energy: 0.3 }
+      { type: 'intro', bars: 8, energy: 0.3 },
+      { type: 'verse', bars: 16, energy: 0.5 },
+      { type: 'prechorus', bars: 8, energy: 0.6 },
+      { type: 'chorus', bars: 16, energy: 0.8 },
+      { type: 'verse', bars: 16, energy: 0.5 },
+      { type: 'prechorus', bars: 8, energy: 0.6 },
+      { type: 'chorus', bars: 16, energy: 0.8 },
+      { type: 'bridge', bars: 16, energy: 0.6 },
+      { type: 'breakdown', bars: 8, energy: 0.4 },
+      { type: 'chorus', bars: 16, energy: 0.9 },
+      { type: 'chorus', bars: 16, energy: 0.9 },
+      { type: 'outro', bars: 8, energy: 0.3 }
     ]
   },
   electronic: {
     name: 'Electronic/Dance',
     sections: [
-      { type: 'intro', bars: 8, energy: 0.2 },
-      { type: 'buildup', bars: 8, energy: 0.4 },
-      { type: 'drop', bars: 16, energy: 0.9 },
-      { type: 'breakdown', bars: 8, energy: 0.5 },
-      { type: 'buildup', bars: 8, energy: 0.6 },
-      { type: 'drop', bars: 16, energy: 1.0 },
-      { type: 'outro', bars: 8, energy: 0.3 }
+      { type: 'intro', bars: 16, energy: 0.2 },
+      { type: 'buildup', bars: 16, energy: 0.4 },
+      { type: 'drop', bars: 32, energy: 0.9 },
+      { type: 'breakdown', bars: 16, energy: 0.5 },
+      { type: 'buildup', bars: 16, energy: 0.6 },
+      { type: 'drop', bars: 32, energy: 1.0 },
+      { type: 'bridge', bars: 16, energy: 0.7 },
+      { type: 'buildup', bars: 8, energy: 0.8 },
+      { type: 'drop', bars: 32, energy: 1.0 },
+      { type: 'outro', bars: 16, energy: 0.3 }
     ]
   },
   hiphop: {
     name: 'Hip-Hop',
     sections: [
-      { type: 'intro', bars: 4, energy: 0.4 },
+      { type: 'intro', bars: 8, energy: 0.4 },
       { type: 'verse', bars: 16, energy: 0.6 },
       { type: 'hook', bars: 8, energy: 0.8 },
       { type: 'verse', bars: 16, energy: 0.6 },
       { type: 'hook', bars: 8, energy: 0.8 },
       { type: 'verse', bars: 16, energy: 0.7 },
       { type: 'hook', bars: 8, energy: 0.8 },
-      { type: 'outro', bars: 4, energy: 0.4 }
+      { type: 'bridge', bars: 8, energy: 0.5 },
+      { type: 'verse', bars: 16, energy: 0.7 },
+      { type: 'hook', bars: 8, energy: 0.9 },
+      { type: 'outro', bars: 8, energy: 0.4 }
     ]
   },
   experimental: {
     name: 'Experimental/Ambient',
     sections: [
-      { type: 'intro', bars: 16, energy: 0.1 },
-      { type: 'development', bars: 32, energy: 0.4 },
-      { type: 'climax', bars: 16, energy: 0.7 },
-      { type: 'resolution', bars: 24, energy: 0.3 },
-      { type: 'coda', bars: 8, energy: 0.1 }
+      { type: 'intro', bars: 32, energy: 0.1 },
+      { type: 'development', bars: 48, energy: 0.4 },
+      { type: 'climax', bars: 32, energy: 0.7 },
+      { type: 'breakdown', bars: 24, energy: 0.3 },
+      { type: 'development', bars: 32, energy: 0.5 },
+      { type: 'climax', bars: 32, energy: 0.8 },
+      { type: 'resolution', bars: 32, energy: 0.3 },
+      { type: 'coda', bars: 16, energy: 0.1 }
+    ]
+  },
+  // Add specific structure for Grimes-style electronic pop
+  ethereal: {
+    name: 'Ethereal Electronic Pop',
+    sections: [
+      { type: 'intro', bars: 16, energy: 0.2 },      // Atmospheric intro
+      { type: 'verse', bars: 16, energy: 0.4 },      // Sparse verse
+      { type: 'buildup', bars: 8, energy: 0.5 },     // Pre-chorus buildup
+      { type: 'chorus', bars: 16, energy: 0.7 },     // Dreamy chorus
+      { type: 'breakdown', bars: 8, energy: 0.3 },   // Post-chorus breakdown
+      { type: 'verse', bars: 16, energy: 0.5 },      // Second verse, slightly more energy
+      { type: 'buildup', bars: 8, energy: 0.6 },     // Stronger buildup
+      { type: 'chorus', bars: 16, energy: 0.8 },     // Full chorus
+      { type: 'bridge', bars: 16, energy: 0.6 },     // Ethereal bridge
+      { type: 'breakdown', bars: 8, energy: 0.4 },   // Stripped back
+      { type: 'chorus', bars: 16, energy: 0.9 },     // Final chorus - all elements
+      { type: 'outro', bars: 16, energy: 0.2 }       // Fade to atmosphere
     ]
   }
 };
 
 /**
- * Detect appropriate song structure based on genre/tempo
+ * Detect appropriate song structure based on genre/tempo/artist
  */
-export function detectSongStructure(tempo, duration, energy) {
+export function detectSongStructure(tempo, duration, energy, artistName = '') {
+  // Check for specific artists first
+  if (artistName.toLowerCase().includes('grimes')) {
+    return SONG_STRUCTURES.ethereal;
+  }
+  
   // Electronic music typically has longer sections
   if (tempo > 120 && tempo < 140) {
     return SONG_STRUCTURES.electronic;
@@ -73,6 +109,11 @@ export function detectSongStructure(tempo, duration, energy) {
   // Experimental/ambient for very slow or very fast
   if (tempo < 80 || tempo > 160) {
     return SONG_STRUCTURES.experimental;
+  }
+  
+  // Ethereal pop for mid-tempo with lower energy
+  if (tempo > 100 && tempo < 120 && energy < 0.5) {
+    return SONG_STRUCTURES.ethereal;
   }
   
   // Default to pop structure
