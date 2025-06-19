@@ -34,7 +34,16 @@ export class StrudelAudioExport {
       output: outputPath
     };
 
-    return await exportPattern(exportOptions);
+    const result = await exportPattern(exportOptions);
+    
+    // Check if export failed
+    if (result && result.success === false) {
+      const error = new Error(result.error || 'Export failed');
+      error.details = result;
+      throw error;
+    }
+    
+    return result;
   }
 
   /**

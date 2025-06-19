@@ -36,13 +36,23 @@ export async function exportPattern(options) {
   } = options;
 
   // Step 1: Record to WebM using browser
-  const webmData = await recordWithBrowser({
-    pattern,
-    duration,
-    headless,
-    quality,
-    prebake
-  });
+  let webmData;
+  try {
+    webmData = await recordWithBrowser({
+      pattern,
+      duration,
+      headless,
+      quality,
+      prebake
+    });
+  } catch (error) {
+    // Return error result
+    return {
+      success: false,
+      error: error.message,
+      details: error.details || {}
+    };
+  }
 
   // Step 2: Convert format if needed
   let finalData = webmData;
@@ -64,6 +74,7 @@ export async function exportPattern(options) {
   const stats = statSync(output);
 
   return {
+    success: true,
     path: output,
     size: stats.size,
     duration: duration,
@@ -319,9 +330,24 @@ async function recordWithBrowser(options) {
                   log('❌ Too many small chunks after 3s - likely generating silence');
                   clearInterval(silenceCheckInterval);
                   mediaRecorder.stop();
+                  
+                  // Collect any console errors
+                  const errors = [];
+                  const logs = document.querySelectorAll('#status').length > 0 
+                    ? document.getElementById('status').textContent.split('\n').filter(line => 
+                        line.toLowerCase().includes('error') || 
+                        line.includes('not found') ||
+                        line.includes('Failed to execute'))
+                    : [];
+                  
                   resolve({
                     success: false,
-                    error: 'Pattern is generating silence - check for invalid sounds or syntax errors'
+                    error: 'Pattern is generating silence - check for invalid sounds or syntax errors',
+                    details: {
+                      smallChunkStreak,
+                      recordingTime,
+                      consoleErrors: logs
+                    }
                   });
                 }
               } else {

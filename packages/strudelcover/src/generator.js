@@ -3,6 +3,7 @@ import { sparkleEnhance } from './visualizers.js';
 import { keyToMidi, getScaleMidiNumbers } from './note-converter.js';
 import { DRUM_PATTERNS, selectDrumPattern, generateDrumStack } from './drum-patterns.js';
 import { ensureCorrectTempo, extractTempo } from './tempo-utils.js';
+import { ComplexPatternGenerator } from './complex-generator.js';
 
 /**
  * Strudel pattern generator using LLM
@@ -11,6 +12,8 @@ export class PatternGenerator {
   constructor(llmProvider, options = {}) {
     this.llmProvider = llmProvider;
     this.sparkleMode = options.sparkle || false;
+    this.complexMode = options.complex || false;
+    this.complexGenerator = new ComplexPatternGenerator();
   }
   
   async initializeLLM() {
@@ -26,6 +29,11 @@ export class PatternGenerator {
    * Generate initial Strudel pattern from audio analysis
    */
   async generateFromAnalysis(analysis, artistName, songName) {
+    // Use complex generator for full songs if enabled
+    if (this.complexMode) {
+      return this.complexGenerator.generateComplexPattern(analysis, artistName, songName);
+    }
+    
     await this.initializeLLM();
     const prompt = this.buildPrompt(analysis, artistName, songName);
     
@@ -171,6 +179,38 @@ $: stack(
 ).room(0.3)
 
 Create something that captures the feel of "${songName}" by ${artistName}.`;
+  }
+
+  /**
+   * Fix pattern errors using LLM
+   */
+  async fixPatternError(errorPrompt, analysis) {
+    await this.initializeLLM();
+    
+    const messages = [
+      {
+        role: "system",
+        content: `You are an expert at fixing Strudel pattern errors.
+                  Fix the pattern to ensure it generates audio successfully.
+                  Use only valid Strudel sounds and syntax.
+                  Only respond with valid Strudel code, no explanations.`
+      },
+      {
+        role: "user",
+        content: errorPrompt
+      }
+    ];
+    
+    const completion = await this.llm.generateCompletion(messages, {
+      temperature: 0.2 // Low temperature for reliable fixes
+    });
+    
+    let pattern = this.cleanPattern(completion);
+    
+    // Ensure correct tempo
+    pattern = ensureCorrectTempo(pattern, analysis.tempo);
+    
+    return pattern;
   }
 
   /**

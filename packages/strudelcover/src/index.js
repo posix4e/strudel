@@ -6,6 +6,7 @@ import StrudelAudioExport from '@strudel/audio-export';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
+import { analyzePatternError, buildErrorRecoveryPrompt, createFallbackPattern } from './error-recovery.js';
 
 /**
  * StrudelCover - AI-powered song recreation in Strudel
@@ -17,6 +18,9 @@ export class StrudelCover {
     // Sparkle mode!
     this.sparkleMode = options.sparkle || false;
     this.sparkle = this.sparkleMode ? new SparkleMode() : null;
+    
+    // Complex mode for full songs
+    this.complexMode = options.complex || false;
     
     this.analyzer = new AudioAnalyzer();
     
@@ -98,7 +102,10 @@ export class StrudelCover {
       throw new Error('LLM configuration required. Use options.openaiKey (legacy) or options.llm');
     }
     
-    this.generator = new PatternGenerator(llmProvider, { sparkle: this.sparkleMode });
+    this.generator = new PatternGenerator(llmProvider, { 
+      sparkle: this.sparkleMode,
+      complex: this.complexMode 
+    });
   }
 
   /**
@@ -168,10 +175,60 @@ export class StrudelCover {
           await this.sparkle.showExportProgress(Math.min(originalAnalysis.duration, 30));
         }
         
-        await this.exporter.exportToFile(pattern, audioPath, {
-          duration: Math.min(originalAnalysis.duration, 30),
-          format: 'wav'
-        });
+        let exportResult;
+        let errorRecoveryAttempts = 0;
+        const maxErrorRecovery = 2;
+        
+        while (errorRecoveryAttempts <= maxErrorRecovery) {
+          try {
+            exportResult = await this.exporter.exportToFile(pattern, audioPath, {
+              duration: Math.min(originalAnalysis.duration, 30),
+              format: 'wav'
+            });
+            
+            // Check if export failed due to silence
+            if (!exportResult || exportResult === false) {
+              throw new Error('Pattern is generating silence');
+            }
+            
+            break; // Success, exit loop
+            
+          } catch (error) {
+            console.log(chalk.red(`\n⚠️  Export failed: ${error.message}`));
+            
+            if (error.message.includes('silence') && errorRecoveryAttempts < maxErrorRecovery) {
+              errorRecoveryAttempts++;
+              console.log(chalk.yellow(`\n🔧 Attempting error recovery (${errorRecoveryAttempts}/${maxErrorRecovery})...`));
+              
+              // Analyze the error
+              const errorAnalysis = analyzePatternError(pattern, error.details);
+              console.log(chalk.gray('Detected issues:'));
+              errorAnalysis.errors.forEach(e => console.log(chalk.gray(`  - ${e}`)));
+              
+              // Try to fix with LLM
+              const recoveryPrompt = buildErrorRecoveryPrompt(pattern, errorAnalysis, originalAnalysis);
+              pattern = await this.generator.fixPatternError(recoveryPrompt, originalAnalysis);
+              
+              // Save the fixed pattern
+              writeFileSync(patternPath + `.fix${errorRecoveryAttempts}`, pattern, 'utf8');
+              console.log(chalk.green('Generated fixed pattern, retrying...'));
+              
+            } else if (errorRecoveryAttempts >= maxErrorRecovery) {
+              // Final fallback
+              console.log(chalk.red('\n❌ Error recovery failed. Using fallback pattern...'));
+              pattern = createFallbackPattern(originalAnalysis.tempo, originalAnalysis.key);
+              writeFileSync(patternPath + '.fallback', pattern, 'utf8');
+              
+              await this.exporter.exportToFile(pattern, audioPath, {
+                duration: Math.min(originalAnalysis.duration, 30),
+                format: 'wav'
+              });
+              break;
+            } else {
+              throw error; // Re-throw if not a silence error
+            }
+          }
+        }
         
         // Analyze generated audio
         console.log(chalk.gray('Analyzing generated audio...'));

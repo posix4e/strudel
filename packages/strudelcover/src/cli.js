@@ -44,6 +44,7 @@ const coverCommand = program
   .option('--snare-threshold <similarity>', 'Min snare pattern similarity', '0.7')
   .option('--require-key-match', 'Require exact key match')
   .option('-s, --sparkle', 'SPARKLE MODE: Maximum visual effects and cyber aesthetics')
+  .option('-c, --complex', 'COMPLEX MODE: Generate full-length songs with multiple sections')
   .action(async (input, artist, song, options) => {
     console.log(chalk.blue.bold('\n🎸 StrudelCover - AI Song Recreation\n'));
     
@@ -81,7 +82,8 @@ const coverCommand = program
         maxIterations: parseInt(options.iterations),
         targetScore: parseInt(options.target),
         autoMode: !options.manual,
-        sparkle: options.sparkle
+        sparkle: options.sparkle,
+        complex: options.complex
       };
       
       // Add manual mode thresholds if specified
