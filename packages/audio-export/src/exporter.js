@@ -268,16 +268,73 @@ async function recordWithBrowser(options) {
         });
         
         const chunks = [];
+        let silenceCheckInterval;
+        let lastChunkTime = Date.now();
+        let totalDataSize = 0;
+        let chunkCount = 0;
+        let smallChunkStreak = 0;
 
         return new Promise((resolve) => {
+          // Set up silence detection
+          silenceCheckInterval = setInterval(() => {
+            const timeSinceLastChunk = Date.now() - lastChunkTime;
+            const avgChunkSize = chunkCount > 0 ? totalDataSize / chunkCount : 0;
+            
+            // Check for no data or very small chunks
+            if (timeSinceLastChunk > 5000 && chunkCount < 5) {
+              log('❌ No audio data received in 5 seconds - aborting');
+              clearInterval(silenceCheckInterval);
+              mediaRecorder.stop();
+              resolve({
+                success: false,
+                error: 'No audio generated - pattern likely has errors or uses invalid sounds'
+              });
+            } else if (chunkCount > 30 && avgChunkSize < 50) {
+              log('❌ Only receiving tiny chunks - audio is likely silent');
+              clearInterval(silenceCheckInterval);
+              mediaRecorder.stop();
+              resolve({
+                success: false,
+                error: 'Generated audio appears to be silent - check pattern for errors'
+              });
+            }
+          }, 1000);
+          
           mediaRecorder.ondataavailable = (e) => {
+            log(`📦 Data event: size=${e.data.size}`);
             if (e.data.size > 0) {
               chunks.push(e.data);
+              totalDataSize += e.data.size;
+              chunkCount++;
+              lastChunkTime = Date.now();
+              
+              // Track small chunks
+              if (e.data.size < 50) {
+                smallChunkStreak++;
+                log(`⚠️  Small chunk: ${e.data.size} bytes (streak: ${smallChunkStreak})`);
+                
+                // Only consider it silence if we've been recording for a while
+                const recordingTime = Date.now() - (lastChunkTime - chunkCount * 100);
+                if (smallChunkStreak > 30 && recordingTime > 3000) {
+                  log('❌ Too many small chunks after 3s - likely generating silence');
+                  clearInterval(silenceCheckInterval);
+                  mediaRecorder.stop();
+                  resolve({
+                    success: false,
+                    error: 'Pattern is generating silence - check for invalid sounds or syntax errors'
+                  });
+                }
+              } else {
+                smallChunkStreak = 0;
+                log(`📊 Received chunk: ${e.data.size} bytes`);
+              }
             }
           };
           
           mediaRecorder.onstop = async () => {
+            clearInterval(silenceCheckInterval);
             log('💾 Processing recording...');
+            log(`📊 Total chunks: ${chunks.length}, Total size: ${totalDataSize} bytes`);
             const blob = new Blob(chunks, { type: mimeType });
             
             // Convert to base64
@@ -296,17 +353,20 @@ async function recordWithBrowser(options) {
           // Start pattern
           log('🎹 Evaluating pattern...');
           window.evaluate(pattern).then(() => {
-            log('🔴 Recording started...');
-            mediaRecorder.start(100); // Capture in 100ms chunks
+            // Give audio time to initialize
+            setTimeout(() => {
+              log('🔴 Recording started...');
+              mediaRecorder.start(100); // Capture in 100ms chunks
+            }, 500);
             
-            // Stop after duration
+            // Stop after duration (plus the 500ms startup delay)
             setTimeout(() => {
               log('⏹️  Stopping...');
               window.hush();
               setTimeout(() => {
                 mediaRecorder.stop();
               }, 500); // Small delay to capture tail
-            }, durationMs);
+            }, durationMs + 500);
           }).catch(error => {
             log('❌ Pattern error: ' + error.message);
             resolve({ success: false, error: error.message });

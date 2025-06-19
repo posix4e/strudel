@@ -1,5 +1,6 @@
 import { LLMProviderFactory } from './llm/index.js';
 import { sparkleEnhance } from './visualizers.js';
+import { keyToMidi, getScaleMidiNumbers } from './note-converter.js';
 
 /**
  * Strudel pattern generator using LLM
@@ -102,6 +103,9 @@ export class PatternGenerator {
   buildPrompt(analysis, artistName, songName) {
     const { tempo, key, rhythm, features } = analysis;
     
+    // Get MIDI numbers for the key
+    const scale = getScaleMidiNumbers(key, 3);
+    
     return `Create a Strudel pattern for "${songName}" by ${artistName}.
 
 Audio Analysis:
@@ -122,6 +126,13 @@ Create a Strudel pattern for this song. Be creative and use multiple layers to c
 Key information:
 - Tempo: ${tempo} BPM (use setcps(${tempo}/60/4))
 - Key: ${key}
+- Scale MIDI numbers for ${key}:
+  - Root (octave 2): ${scale.root - 24}
+  - Root (octave 3): ${scale.root - 12}
+  - Root (octave 4): ${scale.root}
+  - Third: ${scale.third}
+  - Fifth: ${scale.fifth}
+  - Octave: ${scale.octave}
 - Energy: ${features.energy.toFixed(2)} (${this.describeLevel(features.energy)})
 - Brightness: ${features.spectralCentroid.toFixed(0)} Hz (${this.describeBrightness(features.spectralCentroid)})
 
@@ -130,7 +141,7 @@ Available Strudel features to use:
 - Synths: s("sawtooth"), s("square"), s("triangle"), note().sound("sine")
 - Effects: .gain(), .room(), .delay(), .pan(), .speed(), .slow(), .fast()
 - Patterns: Can use *, /, <>, [], ~ for complex rhythms
-- Notes: Use n() with numbers or note names like "c4 eb4 g4"
+- Notes: Use n() with MIDI numbers (60 = C4, 72 = C5)
 
 Example of a more complex pattern:
 setcps(0.5)
@@ -138,9 +149,9 @@ $: stack(
   s("bd:5 ~ bd:5 ~").gain(0.8),
   s("~ sd:3 ~ sd:3").gain(0.7),
   s("hh*16").gain(0.4).pan(sine.range(0,1)),
-  n("<c2 eb2 g2 bb2>").s("bass").gain(0.6),
-  n("c4 eb4 g4 <bb4 c5>").s("sawtooth").gain(0.3).room(0.5),
-  n("~ ~ <c5 eb5> ~").s("square").gain(0.2).delay(0.125)
+  n("<36 39 43 46>").s("bass").gain(0.6),  // C2 Eb2 G2 Bb2
+  n("60 63 67 <70 72>").s("sawtooth").gain(0.3).room(0.5),  // C4 Eb4 G4 Bb4/C5
+  n("~ ~ <72 75> ~").s("square").gain(0.2).delay(0.125)  // C5 Eb5
 ).room(0.3)
 
 Create something that captures the feel of "${songName}" by ${artistName}.`;
