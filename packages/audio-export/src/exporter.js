@@ -43,7 +43,8 @@ export async function exportPattern(options) {
       duration,
       headless,
       quality,
-      prebake
+      prebake,
+      output
     });
   } catch (error) {
     // Return error result
@@ -86,7 +87,7 @@ export async function exportPattern(options) {
  * Record pattern using Puppeteer and MediaRecorder
  */
 async function recordWithBrowser(options) {
-  const { pattern, duration, headless, quality, prebake } = options;
+  const { pattern, duration, headless, quality, prebake, output } = options;
 
   // Try to use system Chrome on macOS if available
   const executablePath = process.platform === 'darwin' && 
@@ -132,27 +133,263 @@ async function recordWithBrowser(options) {
 <head>
   <title>Strudel Audio Export</title>
   <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --text-primary: #0ff;
+      --text-secondary: #088;
+      --accent: #ff0;
+      --border: #333;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
     body { 
-      font-family: monospace; 
+      font-family: 'Courier New', monospace; 
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    header {
+      background: var(--bg-secondary);
       padding: 20px;
-      background: #000;
-      color: #0ff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
-    #status { 
-      white-space: pre-wrap; 
-      line-height: 1.5;
+    
+    h1 {
+      font-size: 24px;
+      font-weight: normal;
+      color: var(--accent);
     }
+    
+    .recording-indicator {
+      width: 12px;
+      height: 12px;
+      background: #f00;
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+      display: none;
+    }
+    
+    .recording-indicator.active {
+      display: block;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      overflow: hidden;
+    }
+    
+    .panel {
+      background: var(--bg-secondary);
+      padding: 15px;
+      overflow: auto;
+      position: relative;
+    }
+    
+    .panel-title {
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    #pattern-display {
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background: var(--bg-primary);
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    
+    #status {
+      white-space: pre-wrap;
+      line-height: 1.4;
+      font-size: 12px;
+      color: #0f8;
+    }
+    
+    #waveform-container {
+      width: 100%;
+      height: calc(100% - 30px);
+      background: var(--bg-primary);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    #waveform {
+      width: 100%;
+      height: 100%;
+    }
+    
+    #pattern-viz {
+      width: 100%;
+      height: calc(100% - 30px);
+      background: var(--bg-primary);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .viz-note {
+      position: absolute;
+      background: var(--accent);
+      border-radius: 2px;
+      opacity: 0.8;
+      transition: all 0.1s ease;
+    }
+    
+    .viz-note:hover {
+      opacity: 1;
+      box-shadow: 0 0 10px var(--accent);
+    }
+    
+    .time-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--text-primary);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    
   </style>
 </head>
 <body>
-  <h1>🎵 Strudel Audio Export</h1>
-  <pre id="status">Initializing...</pre>
+  <header>
+    <h1>🎵 Strudel Audio Export</h1>
+    <div class="recording-indicator" id="recording-indicator"></div>
+    <div id="duration-display" style="color: var(--text-secondary); font-size: 14px;"></div>
+  </header>
+  
+  <main>
+    <div class="panel">
+      <div class="panel-title">Pattern Code</div>
+      <pre id="pattern-display"></pre>
+    </div>
+    
+    <div class="panel">
+      <div class="panel-title">Export Log</div>
+      <pre id="status">Initializing...</pre>
+    </div>
+    
+    <div class="panel">
+      <div class="panel-title">Waveform Visualization</div>
+      <div id="waveform-container">
+        <canvas id="waveform"></canvas>
+      </div>
+    </div>
+    
+    <div class="panel">
+      <div class="panel-title">Pattern Timeline</div>
+      <div id="pattern-viz"></div>
+    </div>
+  </main>
 </body>
 </html>`);
 
     // Run recording in page context
-    const recordingData = await page.evaluate(async (pattern, durationMs, quality, prebake) => {
+    const recordingData = await page.evaluate(async (pattern, durationMs, quality, prebake, outputPath) => {
       const status = document.getElementById('status');
+      const patternDisplay = document.getElementById('pattern-display');
+      const recordingIndicator = document.getElementById('recording-indicator');
+      const durationDisplay = document.getElementById('duration-display');
+      const waveformCanvas = document.getElementById('waveform');
+      const waveformCtx = waveformCanvas.getContext('2d');
+      const patternViz = document.getElementById('pattern-viz');
+      
+      // Display pattern - no HTML highlighting for security/simplicity
+      patternDisplay.textContent = pattern;
+      durationDisplay.innerHTML = `Duration: ${(durationMs/1000).toFixed(1)}s<br>Output: ${outputPath || 'temp.webm'}`;
+      
+      // Set up waveform canvas
+      waveformCanvas.width = waveformCanvas.offsetWidth;
+      waveformCanvas.height = waveformCanvas.offsetHeight;
+      
+      let analyser;
+      let waveformAnimationId;
+      let startTime = Date.now();
+      
+      // Draw waveform
+      function drawWaveform() {
+        if (!analyser) return;
+        
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyser.getByteTimeDomainData(dataArray);
+        
+        waveformCtx.fillStyle = '#0a0a0a';
+        waveformCtx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+        
+        waveformCtx.lineWidth = 2;
+        waveformCtx.strokeStyle = '#0ff';
+        waveformCtx.beginPath();
+        
+        const sliceWidth = waveformCanvas.width * 1.0 / bufferLength;
+        let x = 0;
+        
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128.0;
+          const y = v * waveformCanvas.height / 2;
+          
+          if (i === 0) {
+            waveformCtx.moveTo(x, y);
+          } else {
+            waveformCtx.lineTo(x, y);
+          }
+          
+          x += sliceWidth;
+        }
+        
+        waveformCtx.lineTo(waveformCanvas.width, waveformCanvas.height / 2);
+        waveformCtx.stroke();
+        
+        // Draw time progress
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / durationMs, 1);
+        const progressX = progress * waveformCanvas.width;
+        
+        waveformCtx.strokeStyle = '#ff0';
+        waveformCtx.lineWidth = 2;
+        waveformCtx.beginPath();
+        waveformCtx.moveTo(progressX, 0);
+        waveformCtx.lineTo(progressX, waveformCanvas.height);
+        waveformCtx.stroke();
+        
+        waveformAnimationId = requestAnimationFrame(drawWaveform);
+      }
+      
       const log = (msg) => {
         status.textContent += '\\n' + msg;
         console.log(msg);
@@ -227,6 +464,11 @@ async function recordWithBrowser(options) {
         const dest = audioContext.createMediaStreamDestination();
         log('Created MediaStreamDestination');
         
+        // Create analyser for visualization
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.8;
+        
         
         // Try to find the actual audio output node
         // webaudioOutput is a function, we need the actual node
@@ -250,8 +492,9 @@ async function recordWithBrowser(options) {
           const splitter = audioContext.createGain();
           splitter.gain.value = 1;
           
-          // Connect splitter to both the speaker and recording destination
-          splitter.connect(audioContext.destination);
+          // Connect splitter to analyser, speaker and recording destination
+          splitter.connect(analyser);
+          analyser.connect(audioContext.destination);
           splitter.connect(dest);
           
           // Intercept all connections to destination
@@ -378,16 +621,111 @@ async function recordWithBrowser(options) {
 
           // Start pattern
           log('🎹 Evaluating pattern...');
+          
+          // Pattern timeline visualization
+          let eventCount = 0;
+          let patternStartTime = null;
+          
+          // Add simple visual feedback for pattern activity
+          const addPatternEvent = (name, value) => {
+            if (!patternStartTime || !patternViz) return;
+            
+            const elapsed = Date.now() - patternStartTime;
+            const progress = Math.min((elapsed / durationMs) * 100, 100);
+            
+            const eventEl = document.createElement('div');
+            eventEl.className = 'viz-note';
+            eventEl.style.left = `${progress}%`;
+            eventEl.style.top = `${(eventCount % 8) * 12}%`;
+            eventEl.style.width = '10px';
+            eventEl.style.height = '10px';
+            eventEl.style.background = name === 'bd' ? '#f00' : 
+                                     name === 'sd' ? '#0f0' : 
+                                     name === 'hh' ? '#ff0' : '#0ff';
+            eventEl.title = `${name}: ${value || ''}`;
+            
+            patternViz.appendChild(eventEl);
+            eventCount++;
+            
+            // Clean up old events
+            if (eventCount > 200) {
+              const oldEvents = patternViz.querySelectorAll('.viz-note');
+              if (oldEvents.length > 0) {
+                oldEvents[0].remove();
+              }
+            }
+          };
+          
+          // Hook into console to detect sound loading (simple visualization)
+          const originalConsoleLog = console.log;
+          console.log = function(...args) {
+            const msg = args[0];
+            if (typeof msg === 'string' && msg.includes('[sampler] load sound')) {
+              const match = msg.match(/load sound "(\w+):/);
+              if (match && patternStartTime) {
+                addPatternEvent(match[1], 'loaded');
+              }
+            }
+            return originalConsoleLog.apply(console, args);
+          };
+          
           window.evaluate(pattern).then(() => {
             // Give audio time to initialize
             setTimeout(() => {
               log('🔴 Recording started...');
+              recordingIndicator.classList.add('active');
+              startTime = Date.now();
+              patternStartTime = Date.now();
+              drawWaveform(); // Start waveform animation
+              
+              // Add some visual pattern events based on the pattern
+              // This is a simple visualization - in reality you'd hook into Strudel's event system
+              if (pattern.includes('bd')) {
+                let beatTime = 0;
+                const beatInterval = setInterval(() => {
+                  if (beatTime > durationMs) {
+                    clearInterval(beatInterval);
+                    return;
+                  }
+                  addPatternEvent('bd', '1');
+                  beatTime += 500; // Approximate beat timing
+                }, 500);
+              }
+              
+              if (pattern.includes('hh')) {
+                let hhTime = 0;
+                const hhInterval = setInterval(() => {
+                  if (hhTime > durationMs) {
+                    clearInterval(hhInterval);
+                    return;
+                  }
+                  addPatternEvent('hh', '1');
+                  hhTime += 250; // Hi-hats typically faster
+                }, 250);
+              }
+              
+              if (pattern.includes('sd')) {
+                let sdTime = 1000;
+                const sdInterval = setInterval(() => {
+                  if (sdTime > durationMs) {
+                    clearInterval(sdInterval);
+                    return;
+                  }
+                  addPatternEvent('sd', '1');
+                  sdTime += 1000; // Snare on 2 and 4
+                }, 1000);
+              }
+              
               mediaRecorder.start(100); // Capture in 100ms chunks
             }, 500);
             
             // Stop after duration (plus the 500ms startup delay)
             setTimeout(() => {
               log('⏹️  Stopping...');
+              recordingIndicator.classList.remove('active');
+              if (waveformAnimationId) {
+                cancelAnimationFrame(waveformAnimationId);
+              }
               window.hush();
               setTimeout(() => {
                 mediaRecorder.stop();
@@ -403,7 +741,7 @@ async function recordWithBrowser(options) {
         log('❌ Error: ' + error.message);
         return { success: false, error: error.message };
       }
-    }, pattern, duration * 1000, quality, prebake);
+    }, pattern, duration * 1000, quality, prebake, output);
 
     if (!recordingData.success) {
       throw new Error(recordingData.error || 'Recording failed');
