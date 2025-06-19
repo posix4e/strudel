@@ -3,7 +3,7 @@ import { PatternGenerator } from './generator.js';
 import { LLMProviderFactory } from './llm/index.js';
 import { SparkleMode } from './sparkle.js';
 import StrudelAudioExport from '@strudel/audio-export';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
 
@@ -158,7 +158,11 @@ export class StrudelCover {
         
         // Export current pattern to audio
         const audioPath = join(this.outputDir, `iteration-${iteration}.wav`);
+        const patternPath = join(this.outputDir, `iteration-${iteration}.strudel`);
         console.log(chalk.gray('Exporting pattern to audio...'));
+        
+        // Save pattern file
+        writeFileSync(patternPath, pattern, 'utf8');
         
         if (this.sparkleMode) {
           await this.sparkle.showExportProgress(Math.min(originalAnalysis.duration, 30));
@@ -243,9 +247,8 @@ export class StrudelCover {
         format: 'wav'
       });
       
-      // Save pattern to file
-      const patternPath = join(this.outputDir, 'pattern.strudel');
-      const { writeFileSync } = await import('fs');
+      // Save final pattern to file
+      const finalPatternPath = join(this.outputDir, 'final.strudel');
       
       // Apply sparkle enhancement to the final pattern if sparkle mode is enabled
       let finalPattern = bestPattern;
@@ -254,11 +257,11 @@ export class StrudelCover {
         finalPattern = sparkleEnhance(bestPattern);
       }
       
-      writeFileSync(patternPath, finalPattern);
+      writeFileSync(finalPatternPath, finalPattern);
       
       console.log(chalk.green(`\n✨ StrudelCover Complete!`));
       console.log(chalk.gray(`Final score: ${bestScore}/100`));
-      console.log(chalk.gray(`Pattern saved to: ${patternPath}`));
+      console.log(chalk.gray(`Pattern saved to: ${finalPatternPath}`));
       console.log(chalk.gray(`Audio saved to: ${results.finalAudioPath}`));
       
       return results;
