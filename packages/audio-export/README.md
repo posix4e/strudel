@@ -58,7 +58,8 @@ Options:
   --headless                   Run in headless mode (no browser window)
   --sample-rate <rate>         Sample rate for WAV output (default: 44100)
   --bit-rate <rate>           Bit rate for MP3 output (default: 192k)
-  --prebake <code>            Custom prebake code
+  --prebake <code>            Custom prebake code (default: comprehensive prebake with GM sounds)
+  --simple-prebake            Use simple prebake (only dirt-samples, no GM sounds)
 ```
 
 ### Examples
@@ -75,6 +76,27 @@ strudel-export "s('mysamples:kick*4')" custom.webm --prebake "samples('mysamples
 
 # Headless mode (no browser window)
 strudel-export "s('cp').every(4, rev)" pattern.wav --headless
+
+# GM sounds (General MIDI)
+strudel-export "n('0 2 4 7').s('gm_piano')" piano.wav
+strudel-export "n('0 3 5 7').s('gm_violin').room(1)" violin.mp3
+```
+
+### GM Sound Support
+
+The audio exporter includes support for General MIDI (GM) sounds by default. These are high-quality soundfonts that provide realistic instrument sounds:
+
+- `gm_piano` - Various piano sounds
+- `gm_harmonica` - Harmonica
+- `gm_violin` - Violin sounds
+- `gm_electric_bass_finger` - Electric bass
+- And many more GM instruments...
+
+GM sounds are loaded automatically with the comprehensive prebake. If you want to disable GM sounds for faster loading, use the `--simple-prebake` flag:
+
+```bash
+# Without GM sounds (faster loading)
+strudel-export "s('bd*4')" drums.wav --simple-prebake
 ```
 
 ## Programmatic API

@@ -4,10 +4,14 @@
 import { keyToMidi, getScaleMidiNumbers } from './note-converter.js';
 import { DRUM_PATTERNS, selectDrumPattern, generateDrumStack } from './drum-patterns.js';
 import { detectSongStructure, calculateSectionTimings, generateSectionVariations } from './song-structure.js';
+import { patternAudioAnalyzer } from './pattern-audio-analyzer.js';
+import chalk from 'chalk';
 
 export class ComplexPatternGenerator {
   constructor() {
     this.sectionPatterns = {};
+    // Analyze pattern characteristics on startup
+    patternAudioAnalyzer.analyzePatternCharacteristics();
   }
 
   /**
@@ -41,6 +45,30 @@ export class ComplexPatternGenerator {
    */
   generateSectionPattern(sectionType, tempo, scale, features, rhythm) {
     const variations = generateSectionVariations(null, sectionType, features.energy);
+    
+    // Use pattern audio analyzer to find matching patterns
+    const targetAnalysis = {
+      tempo,
+      key: scale.key,
+      features: {
+        energy: features.energy || 0.5,
+        spectralCentroid: features.spectralCentroid || features.brightness || 500
+      }
+    };
+    
+    // Get suggestions for this section
+    const sectionSuggestions = patternAudioAnalyzer.suggestPatternsForSections(
+      targetAnalysis,
+      { [sectionType]: { startTime: 0, duration: 30 } }
+    );
+    
+    const suggestions = sectionSuggestions[sectionType] || [];
+    if (suggestions.length > 0) {
+      console.log(chalk.cyan(`\nUsing pattern suggestions for ${sectionType}:`));
+      suggestions.slice(0, 3).forEach((s, i) => {
+        console.log(chalk.gray(`  ${i + 1}. ${s.pattern.name} (${s.pattern.tempo} BPM, ${s.pattern.style})`));
+      });
+    }
     
     // Select appropriate drum pattern based on section
     let drumPattern = selectDrumPattern(tempo, features.energy);

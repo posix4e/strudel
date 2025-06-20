@@ -2,10 +2,14 @@
 
 import { program } from 'commander';
 import { exportPattern } from './exporter.js';
+import { exportPatternUsingStrudelCC } from './exporter-strudelcc.js';
 import ora from 'ora';
 import chalk from 'chalk';
-import { resolve } from 'path';
-import { existsSync } from 'fs';
+import { resolve, dirname, join } from 'path';
+import { existsSync, readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 program
   .name('strudel-export')
@@ -19,7 +23,9 @@ program
   .option('--headless', 'Run in headless mode (no browser window)', false)
   .option('--sample-rate <rate>', 'Sample rate for WAV output', '44100')
   .option('--bit-rate <rate>', 'Bit rate for MP3 output (e.g., 128k, 192k, 320k)', '192k')
-  .option('--prebake <code>', 'Custom prebake code (default: loads dirt-samples)')
+  .option('--prebake <code>', 'Custom prebake code (default: comprehensive prebake with GM sounds)')
+  .option('--simple-prebake', 'Use simple prebake (only dirt-samples, no GM sounds)')
+  .option('--use-strudelcc', 'Use strudel.cc directly (full GM sound support!)')
   .action(async (pattern, output, options) => {
     const spinner = ora('Initializing Strudel audio export...').start();
 
@@ -47,6 +53,22 @@ program
 
       spinner.text = 'Setting up browser environment...';
 
+      // Load prebake
+      let prebake = options.prebake;
+      if (!prebake && !options.simplePrebake) {
+        // Load comprehensive prebake by default
+        try {
+          prebake = readFileSync(join(dirname(__dirname), 'comprehensive-prebake.js'), 'utf8');
+          spinner.text = 'Loading comprehensive prebake (includes GM sounds)...';
+        } catch (e) {
+          console.warn(chalk.yellow('\nWarning: Could not load comprehensive prebake, using simple prebake'));
+          prebake = "await samples('github:tidalcycles/dirt-samples')";
+        }
+      } else if (!prebake) {
+        // Simple prebake
+        prebake = "await samples('github:tidalcycles/dirt-samples')";
+      }
+
       // Export options
       const exportOptions = {
         pattern,
@@ -57,7 +79,7 @@ program
         headless: options.headless,
         sampleRate: parseInt(options.sampleRate),
         bitRate: options.bitRate,
-        prebake: options.prebake
+        prebake
       };
 
       // Show export details
@@ -73,19 +95,30 @@ program
       } else if (format === 'wav') {
         console.log(chalk.white('Sample Rate: ') + chalk.blue(`${options.sampleRate} Hz`));
       }
+      
+      if (options.useStrudelcc) {
+        console.log(chalk.white('Method:   ') + chalk.magenta('Using strudel.cc (Full GM support!)'));
+      }
+      
       console.log(chalk.gray('─'.repeat(40)) + '\n');
 
       spinner.text = 'Exporting pattern...';
       
       // Perform export
-      const result = await exportPattern(exportOptions);
+      const result = await (options.useStrudelcc 
+        ? exportPatternUsingStrudelCC(exportOptions)
+        : exportPattern(exportOptions));
 
-      spinner.succeed(`Export complete! File saved to: ${chalk.green(outputPath)}`);
-      
-      // Show file info
-      console.log(chalk.gray(`\nFile size: ${(result.size / 1024 / 1024).toFixed(2)} MB`));
-      console.log(chalk.gray(`Duration: ${result.duration.toFixed(1)}s`));
-      console.log(chalk.gray(`Format: ${result.format.toUpperCase()}`));
+      if (result.success) {
+        spinner.succeed(`Export complete! File saved to: ${chalk.green(outputPath)}`);
+        
+        // Show file info
+        console.log(chalk.gray(`\nFile size: ${(result.size / 1024 / 1024).toFixed(2)} MB`));
+        console.log(chalk.gray(`Duration: ${result.duration.toFixed(1)}s`));
+        console.log(chalk.gray(`Format: ${result.format.toUpperCase()}`));
+      } else {
+        throw new Error(result.error || 'Export failed');
+      }
 
     } catch (error) {
       spinner.fail('Export failed');

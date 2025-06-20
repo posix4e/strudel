@@ -1,7 +1,11 @@
 import { AudioAnalyzer } from './analyzer.js';
+import { AdvancedAudioAnalyzer } from './advanced-analyzer.js';
+import { TrackSeparator } from './track-separator.js';
+import { ProgressVisualizer } from './progress-visualizer.js';
 import { PatternGenerator } from './generator.js';
 import { LLMProviderFactory } from './llm/index.js';
 import { SparkleMode } from './sparkle.js';
+import { DazzleDashboard } from './dazzle-dashboard.js';
 import StrudelAudioExport from '@strudel/audio-export';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
@@ -19,14 +23,24 @@ export class StrudelCover {
     this.sparkleMode = options.sparkle || false;
     this.sparkle = this.sparkleMode ? new SparkleMode() : null;
     
+    // Dazzle mode - real-time construction dashboard
+    this.dazzleMode = options.dazzle || false;
+    this.dazzleDashboard = null;
+    
     // Complex mode for full songs
     this.complexMode = options.complex || false;
     
+    // Always use advanced analyzer with aubio-like features
+    this.analyzer = new AdvancedAudioAnalyzer();
     
-    this.analyzer = new AudioAnalyzer();
+    // Track separator for multi-track generation
+    this.trackSeparator = new TrackSeparator();
+    
+    // Progress visualizer
+    this.progressVisualizer = new ProgressVisualizer();
     
     this.exporter = new StrudelAudioExport({ 
-      headless: !this.sparkleMode, // Show browser in sparkle mode
+      headless: !(this.sparkleMode || this.dazzleMode), // Show browser in sparkle and dazzle modes
       duration: 30 // Default to 30 seconds
     });
     
@@ -122,12 +136,40 @@ export class StrudelCover {
       await this.sparkle.glitchEffect();
     }
     
+    // Initialize dazzle dashboard
+    if (this.dazzleMode) {
+      const { DazzleDashboard } = await import('./dazzle-dashboard.js');
+      this.dazzleDashboard = new DazzleDashboard();
+      await this.dazzleDashboard.start();
+      this.dazzleDashboard.setPhase('analyzing');
+    }
+    
     console.log(chalk.blue(`\n🎵 StrudelCover: "${songName}" by ${artistName}\n`));
     
     try {
       // Step 1: Analyze original song
       console.log(chalk.gray('Analyzing original audio...'));
-      const originalAnalysis = await this.analyzer.analyze(songPath);
+      
+      // Initialize progress visualizer if not in sparkle mode
+      if (!this.sparkleMode) {
+        this.progressVisualizer.init(songName);
+        this.progressVisualizer.updateTrackProgress('analysis', 0, 'processing');
+      }
+      
+      // Use advanced analysis
+      const originalAnalysis = await this.analyzer.analyzeAdvanced(songPath);
+      
+      // Perform track separation for multi-track generation
+      if (this.complexMode) {
+        this.progressVisualizer.updateTrackProgress('analysis', 50, 'processing');
+        const trackAnalysis = await this.trackSeparator.separateTracks(songPath);
+        originalAnalysis.tracks = trackAnalysis.tracks;
+        originalAnalysis.separation = trackAnalysis.separation;
+      }
+      
+      if (!this.sparkleMode) {
+        this.progressVisualizer.updateTrackProgress('analysis', 100, 'completed');
+      }
       
       if (this.sparkleMode) {
         await this.sparkle.showAnalysisVisualization(originalAnalysis);
@@ -137,6 +179,37 @@ export class StrudelCover {
       
       // Step 2: Generate initial pattern
       console.log(chalk.gray('\nGenerating initial Strudel pattern...'));
+      
+      // Dazzle mode - section by section generation
+      if (this.dazzleMode) {
+        const { DazzleGenerator } = await import('./dazzle-generator.js');
+        
+        // Ensure LLM is initialized
+        await this.initializeLLM();
+        await this.generator.initializeLLM();
+        
+        const dazzleGen = new DazzleGenerator({
+          sparkleMode: this.sparkleMode,
+          debug: this.options.debug,
+          llmProvider: this.generator.llmProvider,
+          dashboard: this.dazzleDashboard
+        });
+        
+        const outputPath = await dazzleGen.generateCover(
+          songPath,
+          artistName,
+          songName,
+          { outputDir: this.outputDir }
+        );
+        
+        console.log(chalk.green.bold('\n✨ Dazzle generation complete!'));
+        console.log(chalk.gray(`Output: ${outputPath}`));
+        
+        return {
+          audioPath: outputPath,
+          outputDir: this.outputDir
+        };
+      }
       
       if (this.sparkleMode) {
         const prompt = this.generator.buildPrompt(originalAnalysis, artistName, songName);
@@ -333,10 +406,16 @@ export class StrudelCover {
       
       writeFileSync(finalPatternPath, finalPattern);
       
-      console.log(chalk.green(`\n✨ StrudelCover Complete!`));
-      console.log(chalk.gray(`Final score: ${bestScore}/100`));
-      console.log(chalk.gray(`Pattern saved to: ${finalPatternPath}`));
-      console.log(chalk.gray(`Audio saved to: ${results.finalAudioPath}`));
+      // Show completion
+      if (!this.sparkleMode) {
+        this.progressVisualizer.updateTrackProgress('mixing', 100, 'completed');
+        this.progressVisualizer.showCompletion(results.finalAudioPath);
+      } else {
+        console.log(chalk.green(`\n✨ StrudelCover Complete!`));
+        console.log(chalk.gray(`Final score: ${bestScore}/100`));
+        console.log(chalk.gray(`Pattern saved to: ${finalPatternPath}`));
+        console.log(chalk.gray(`Audio saved to: ${results.finalAudioPath}`));
+      }
       
       // Show learned corrections in sparkle mode
       if (this.sparkleMode) {

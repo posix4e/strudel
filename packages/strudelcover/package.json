@@ -5,11 +5,16 @@
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "strudelcover": "./src/cli.js"
+    "strudelcover": "./src/cli.js",
+    "strudelcover-rag": "./src/rag/cli.js"
   },
   "scripts": {
     "test": "node test/test.js",
-    "cover": "node src/cli.js"
+    "cover": "node src/cli.js",
+    "rag:init": "node src/rag/cli.js init",
+    "rag:search": "node src/rag/cli.js search",
+    "rag:validate": "node src/rag/cli.js validate",
+    "rag:add": "node src/rag/cli.js add"
   },
   "dependencies": {
     "@strudel/audio-export": "workspace:*",
@@ -28,7 +33,10 @@
     "figlet": "^1.6.0",
     "nanospinner": "^1.1.0",
     "@anthropic-ai/sdk": "^0.20.0",
-    "open": "^9.0.0"
+    "open": "^9.0.0",
+    "essentia.js": "^0.1.3",
+    "web-audio-beat-detector": "^8.2.29",
+    "ws": "^8.16.0"
   },
   "devDependencies": {},
   "keywords": [

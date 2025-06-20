@@ -120,8 +120,16 @@ async function recordWithBrowser(options) {
       console.error('Page error:', err);
     });
     
+    // Capture all console messages including errors
+    const consoleErrors = [];
     page.on('console', msg => {
-      console.log('Browser console:', msg.text());
+      const text = msg.text();
+      console.log('Browser console:', text);
+      
+      // Capture errors for later use
+      if (msg.type() === 'error' || text.includes('error') || text.includes('Error')) {
+        consoleErrors.push(text);
+      }
     });
 
     // Set viewport for consistency
@@ -321,6 +329,13 @@ async function recordWithBrowser(options) {
 
     // Run recording in page context
     const recordingData = await page.evaluate(async (pattern, durationMs, quality, prebake, outputPath) => {
+      // Track console errors inside page context
+      const pageConsoleErrors = [];
+      const originalError = console.error;
+      console.error = function(...args) {
+        pageConsoleErrors.push(args.join(' '));
+        return originalError.apply(console, args);
+      };
       const status = document.getElementById('status');
       const patternDisplay = document.getElementById('pattern-display');
       const recordingIndicator = document.getElementById('recording-indicator');
@@ -396,10 +411,10 @@ async function recordWithBrowser(options) {
       };
 
       try {
-        // Import Strudel - use same approach as cli-puppeteer.js
-        const strudelModule = await import('https://unpkg.com/@strudel/web@latest/dist/index.js');
+        log('📦 Loading Strudel with full capabilities...');
         
-        // The module might export everything on default or as named exports
+        // First, load the web bundle as usual
+        const strudelModule = await import('https://unpkg.com/@strudel/web@latest/dist/index.js');
         const exports = strudelModule.default || strudelModule;
         
         // Try to find the functions we need
@@ -408,26 +423,73 @@ async function recordWithBrowser(options) {
         const getAudioContext = exports.getAudioContext || window.getAudioContext;
         
         if (!initStrudel) {
-          // Log what we got to debug
-          log('Available exports: ' + Object.keys(exports).join(', '));
           throw new Error('Could not find initStrudel function');
         }
 
-        log('📦 Loading Strudel...');
-        
-        // Initialize without prebake first
+        // Initialize Strudel
         await initStrudel();
         
-        // Debug what's available after init
+        // Now try to load GM soundfonts using strudel.cc's approach
+        // Check if pattern needs GM sounds
+        const needsGMSounds = prebake && prebake.includes('gm_') || 
+                             pattern.includes('gm_');
+        
+        if (needsGMSounds) {
+          log('⚠️  Pattern uses GM sounds (gm_piano, gm_harmonica, etc.)');
+          log('');
+          log('GM sounds are not included in the default Strudel web bundle.');
+          log('');
+          log('Options:');
+          log('1. Use --use-strudelcc flag to export via strudel.cc (full GM support)');
+          log('2. The exporter will attempt to use similar alternative sounds');
+          log('3. Build a custom Strudel bundle with soundfonts included');
+          log('');
+          
+          // Offer to replace with alternatives
+          log('Attempting to use alternative sounds...');
+          
+          // Import and use GM sound alternatives
+          const { replaceGMSounds, logGMReplacements } = await import('../gm-sound-alternatives.js');
+          
+          // Log which sounds will be replaced
+          const replacements = logGMReplacements(pattern);
+          if (replacements.length > 0) {
+            log('Sound replacements:');
+            replacements.forEach(r => log(`  ${r}`));
+            
+            // Update the pattern with alternatives
+            pattern = replaceGMSounds(pattern);
+            log('✅ Pattern updated with alternative sounds');
+          }
+        }
         
         // Now samples should be available on window
         const samplesFunc = window.samples;
         
-        // Load samples if needed
-        if (samplesFunc && prebake) {
-          await eval(prebake);
-        } else if (samplesFunc) {
-          await samplesFunc('github:tidalcycles/dirt-samples');
+        // Load samples and prebake
+        if (prebake) {
+          log('Loading prebake code...');
+          try {
+            // Create an async function to properly handle imports in prebake
+            const prebakeFunc = new Function('samples', 'setDefaultVoicings', `
+              return (async () => {
+                ${prebake}
+              })();
+            `);
+            await prebakeFunc(window.samples, window.setDefaultVoicings);
+            log('Prebake loaded successfully');
+          } catch (e) {
+            log('Error loading prebake: ' + e.message);
+          }
+        } else if (window.samples) {
+          // Default minimal prebake
+          log('Loading default samples...');
+          await window.samples('github:tidalcycles/dirt-samples');
+          
+          // Set default voicings for patterns that use it
+          if (window.setDefaultVoicings) {
+            window.setDefaultVoicings('legacy');
+          }
         } else {
           log('Warning: samples function not found, continuing without preloading samples');
         }
@@ -589,7 +651,7 @@ async function recordWithBrowser(options) {
                     details: {
                       smallChunkStreak,
                       recordingTime,
-                      consoleErrors: logs
+                      consoleErrors: [...logs, ...pageConsoleErrors]
                     }
                   });
                 }
@@ -733,7 +795,13 @@ async function recordWithBrowser(options) {
             }, durationMs + 500);
           }).catch(error => {
             log('❌ Pattern error: ' + error.message);
-            resolve({ success: false, error: error.message });
+            resolve({ 
+              success: false, 
+              error: error.message,
+              details: {
+                consoleErrors: pageConsoleErrors
+              }
+            });
           });
         });
 
@@ -744,7 +812,20 @@ async function recordWithBrowser(options) {
     }, pattern, duration * 1000, quality, prebake, output);
 
     if (!recordingData.success) {
-      throw new Error(recordingData.error || 'Recording failed');
+      const error = new Error(recordingData.error || 'Recording failed');
+      // Pass console errors through the error object
+      if (recordingData.details) {
+        error.details = recordingData.details;
+        
+        // Also add console errors from outside page context
+        if (consoleErrors.length > 0) {
+          error.details.consoleErrors = [
+            ...(error.details.consoleErrors || []),
+            ...consoleErrors
+          ];
+        }
+      }
+      throw error;
     }
 
     return Buffer.from(recordingData.data, 'base64');

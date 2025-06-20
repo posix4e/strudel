@@ -18,6 +18,8 @@ AI-powered tool to automatically recreate songs as Strudel patterns through iter
 - Configurable iteration limits and similarity targets
 - Custom weights for scoring algorithm
 - Per-metric threshold control for precise matching
+- **Pattern Audio Analysis**: Intelligent pattern selection based on sonic characteristics
+- RAG (Retrieval Augmented Generation) with 60+ curated Strudel patterns
 
 ## Installation
 
@@ -243,6 +245,25 @@ console.log(`Rhythm:`, analysis.rhythm);
 2. **Increase iterations** - More iterations = better match (but slower)
 3. **Use shorter clips** - 30-60 seconds is usually enough
 4. **Adjust target score** - 70-80 is realistic for complex songs
+
+## Pattern Audio Analysis
+
+StrudelCover uses an intelligent pattern selection system that analyzes the sonic characteristics of patterns in the RAG database:
+
+- **Tempo Matching**: Finds patterns with similar BPM (±10 BPM tolerance)
+- **Energy Matching**: Matches patterns based on estimated energy levels
+- **Key Compatibility**: Prioritizes harmonically compatible patterns
+- **Tag-Based Selection**: Uses tags like 'drums', 'bass', 'atmosphere' for appropriate layers
+- **Section Awareness**: Suggests different patterns for intro, verse, chorus, bridge, outro
+
+The system analyzes 60+ curated patterns and selects the most appropriate ones based on:
+- Tempo (64-215 BPM range)
+- Energy level (estimated from tempo, tags, instruments)
+- Musical style (general, jazz, techno, etc.)
+- Complexity (simple, medium, complex)
+- Instrumentation (piano, synths, drums)
+
+See [PATTERN_AUDIO_ANALYSIS.md](./PATTERN_AUDIO_ANALYSIS.md) for detailed documentation.
 
 ## LLM Providers
 

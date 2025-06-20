@@ -44,6 +44,7 @@ const coverCommand = program
   .option('--snare-threshold <similarity>', 'Min snare pattern similarity', '0.7')
   .option('--require-key-match', 'Require exact key match')
   .option('-s, --sparkle', 'SPARKLE MODE: Maximum visual effects and cyber aesthetics')
+  .option('-d, --dazzle', 'DAZZLE MODE: Real-time construction dashboard with section-by-section building')
   .option('-c, --complex', 'COMPLEX MODE: Generate full-length songs with multiple sections')
   .action(async (input, artist, song, options) => {
     console.log(chalk.blue.bold('\n🎸 StrudelCover - AI Song Recreation\n'));
@@ -83,6 +84,7 @@ const coverCommand = program
         targetScore: parseInt(options.target),
         autoMode: !options.manual,
         sparkle: options.sparkle,
+        dazzle: options.dazzle,
         complex: options.complex
       };
       
@@ -139,9 +141,14 @@ program.on('--help', () => {
   console.log('  # SPARKLE MODE - Maximum visual effects');
   console.log('  $ strudelcover song.mp3 "Artist" "Song" --sparkle');
   console.log('');
+  console.log('  # DAZZLE MODE - Real-time construction dashboard');
+  console.log('  $ strudelcover song.mp3 "Artist" "Song" --dazzle');
+  console.log('');
   console.log('Modes:');
   console.log('  Auto Mode (default):   Uses overall similarity score (0-100)');
   console.log('  Manual Mode (--manual): Must meet all specified thresholds');
+  console.log('  Sparkle Mode (--sparkle): Maximum visual effects during generation');
+  console.log('  Dazzle Mode (--dazzle): Real-time dashboard with section-by-section building');
   console.log('');
   console.log('LLM Providers:');
   console.log('  openai (default)  - GPT-4o, requires OPENAI_API_KEY');
