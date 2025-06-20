@@ -387,7 +387,8 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
       output: outputPath,
       duration: 10,
       format: 'webm',
-      headless: true // Use headless for testing
+      headless: false, // Always show browser in dazzle mode
+      dashboard: this.dashboard // Pass dashboard for visualization
     });
     
     if (!result.success) {
@@ -415,7 +416,8 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
       output: outputPath,
       duration: 180, // 3 minutes
       format: 'webm',
-      headless: false // Show browser for final export
+      headless: false, // Show browser for final export
+      dashboard: this.dashboard // Pass dashboard for visualization
     });
     
     if (!result.success) {
@@ -720,7 +722,8 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
         output: outputPath,
         duration: 15, // 15 second preview
         format: 'webm',
-        headless: false // Show browser for dazzle mode
+        headless: false, // Show browser for dazzle mode
+        dashboard: this.dashboard // Pass dashboard for visualization
       });
       
       if (!result.success) {

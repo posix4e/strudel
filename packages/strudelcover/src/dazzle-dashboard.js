@@ -832,21 +832,13 @@ export class DazzleDashboard {
       }
     });
     
-    // Simulate audio data for now (until we connect to real audio)
-    setInterval(() => {
-      // Simulate waveform data
-      for (let i = 0; i < state.audioData.waveform.length; i++) {
-        state.audioData.waveform[i] = 128 + Math.sin(i * 0.1 + Date.now() * 0.001) * 64 * Math.random();
-      }
-      
-      // Simulate frequency data
-      for (let i = 0; i < state.audioData.frequency.length; i++) {
-        const bass = i < 10 ? Math.random() * 200 + 55 : 0;
-        const mid = i >= 10 && i < 30 ? Math.random() * 150 : 0;
-        const high = i >= 30 ? Math.random() * 100 : 0;
-        state.audioData.frequency[i] = bass + mid + high;
-      }
-    }, 50);
+    // Initialize with silence (will be replaced by real data)
+    for (let i = 0; i < state.audioData.waveform.length; i++) {
+      state.audioData.waveform[i] = 128; // Center line
+    }
+    for (let i = 0; i < state.audioData.frequency.length; i++) {
+      state.audioData.frequency[i] = 0;
+    }
     
     // Clean up on close
     window.addEventListener('beforeunload', () => {

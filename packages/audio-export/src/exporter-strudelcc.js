@@ -22,7 +22,8 @@ export async function exportPatternUsingStrudelCC(options) {
     headless = false,
     sampleRate = 44100,
     bitRate = '192k',
-    prebake = null
+    prebake = null,
+    dashboard = null
   } = options;
 
   // Record using strudel.cc
@@ -33,7 +34,8 @@ export async function exportPatternUsingStrudelCC(options) {
       duration,
       headless,
       quality,
-      output
+      output,
+      dashboard
     });
   } catch (error) {
     return {
@@ -75,7 +77,7 @@ export async function exportPatternUsingStrudelCC(options) {
  * Record pattern using strudel.cc
  */
 async function recordWithStrudelCC(options) {
-  const { pattern, duration, headless, quality, output } = options;
+  const { pattern, duration, headless, quality, output, dashboard } = options;
   
   // Initialize console errors array at function scope
   const consoleErrors = [];
@@ -246,6 +248,15 @@ async function recordWithStrudelCC(options) {
         window.__recordingDest = dest;
         window.__audioContext = audioContext;
         
+        // Set up audio visualization
+        const analyzer = audioContext.createAnalyser();
+        analyzer.fftSize = 256;
+        analyzer.smoothingTimeConstant = 0.8;
+        
+        window.__audioAnalyzer = analyzer;
+        window.__waveformData = new Uint8Array(analyzer.frequencyBinCount);
+        window.__frequencyData = new Uint8Array(analyzer.frequencyBinCount);
+        
         // Intercept audio connections before they happen
         const originalConnect = AudioNode.prototype.connect;
         const interceptedNodes = new WeakSet();
@@ -261,6 +272,13 @@ async function recordWithStrudelCC(options) {
               originalConnect.call(this, dest, ...args);
             } catch (e) {
               console.log('Could not connect to recorder:', e.message);
+            }
+            
+            // Connect to analyzer for visualization
+            try {
+              originalConnect.call(this, window.__audioAnalyzer, ...args);
+            } catch (e) {
+              console.log('Could not connect to analyzer:', e.message);
             }
           }
           
@@ -353,6 +371,29 @@ async function recordWithStrudelCC(options) {
     console.log('⏳ Waiting for audio to start...');
     await new Promise(resolve => setTimeout(resolve, 2000));
     
+    // Start streaming visualization data to dashboard if available
+    if (dashboard && dashboard.sendAudioData) {
+      const vizInterval = setInterval(async () => {
+        try {
+          const vizData = await page.evaluate(() => {
+            return window.__currentVisualizationData || null;
+          });
+          
+          if (vizData && vizData.waveform && vizData.frequency) {
+            dashboard.sendAudioData(
+              new Uint8Array(vizData.waveform),
+              new Uint8Array(vizData.frequency)
+            );
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+      }, 50);
+      
+      // Stop streaming after duration
+      setTimeout(() => clearInterval(vizInterval), duration * 1000);
+    }
+    
     // Now start recording using the pre-setup destination
     console.log('🔴 Starting recording...');
     
@@ -412,6 +453,27 @@ async function recordWithStrudelCC(options) {
         // Monitor audio level
         if (dest.stream.getAudioTracks().length > 0) {
           console.log('Audio tracks available:', dest.stream.getAudioTracks().length);
+        }
+        
+        // Start visualization data capture if analyzer exists
+        if (window.__audioAnalyzer) {
+          const vizInterval = setInterval(() => {
+            try {
+              window.__audioAnalyzer.getByteTimeDomainData(window.__waveformData);
+              window.__audioAnalyzer.getByteFrequencyData(window.__frequencyData);
+              
+              // Store for dashboard access
+              window.__currentVisualizationData = {
+                waveform: Array.from(window.__waveformData.slice(0, 128)),
+                frequency: Array.from(window.__frequencyData.slice(0, 64))
+              };
+            } catch (e) {
+              // Ignore errors during capture
+            }
+          }, 50);
+          
+          // Clean up interval when done
+          setTimeout(() => clearInterval(vizInterval), durationMs);
         }
         
         // Stop after duration
