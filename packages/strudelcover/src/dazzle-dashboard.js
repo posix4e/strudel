@@ -139,6 +139,13 @@ export class DazzleDashboard {
       data: { sectionId, instruments }
     });
   }
+  
+  sendAudioData(waveform, frequency) {
+    this.broadcast({
+      type: 'audio_data',
+      data: { waveform, frequency }
+    });
+  }
 
   stop() {
     if (this.wss) {
@@ -418,6 +425,35 @@ export class DazzleDashboard {
       background: #000;
       border: 1px solid #088;
     }
+    
+    .viz-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      justify-content: center;
+    }
+    
+    .viz-button {
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid #088;
+      color: #0ff;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8em;
+      transition: all 0.3s;
+    }
+    
+    .viz-button:hover {
+      background: rgba(0, 255, 255, 0.2);
+      border-color: #0ff;
+    }
+    
+    .viz-button.active {
+      background: rgba(0, 255, 255, 0.3);
+      border-color: #0ff;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
   </style>
 </head>
 <body>
@@ -459,6 +495,12 @@ export class DazzleDashboard {
   <div class="visualizer-container">
     <canvas id="visualizer" width="400" height="100"></canvas>
     <div class="visualizer-label">Audio Output Visualization</div>
+    <div class="viz-controls">
+      <button class="viz-button active" data-mode="waveform">Waveform</button>
+      <button class="viz-button" data-mode="frequency">Frequency</button>
+      <button class="viz-button" data-mode="circular">Circular</button>
+      <button class="viz-button" data-mode="bars">Bars</button>
+    </div>
   </div>
 
   <script>
@@ -569,45 +611,141 @@ export class DazzleDashboard {
     // Initial update
     updateUI();
     
-    // Audio Visualizer
+    // Audio Visualizer with Real Audio Data
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
     let animationId;
+    let audioContext = null;
+    let analyser = null;
+    let dataArray = null;
+    let currentMode = 'waveform';
+    
+    // Add audio data to state for real visualization
+    state.audioData = {
+      waveform: new Uint8Array(128),
+      frequency: new Uint8Array(64)
+    };
+    
+    // Handle visualization mode changes
+    document.querySelectorAll('.viz-button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        document.querySelectorAll('.viz-button').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentMode = e.target.dataset.mode;
+      });
+    });
+    
+    // Visualization drawing functions
+    const visualizers = {
+      waveform: () => {
+        const width = canvas.width;
+        const height = canvas.height;
+        const data = state.audioData.waveform;
+        
+        ctx.strokeStyle = '#0ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        const sliceWidth = width / data.length;
+        let x = 0;
+        
+        for (let i = 0; i < data.length; i++) {
+          const v = data[i] / 128.0;
+          const y = v * height / 2;
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+          
+          x += sliceWidth;
+        }
+        
+        ctx.stroke();
+      },
+      
+      frequency: () => {
+        const width = canvas.width;
+        const height = canvas.height;
+        const data = state.audioData.frequency;
+        
+        const barWidth = (width / data.length) * 2.5;
+        let x = 0;
+        
+        for (let i = 0; i < data.length; i++) {
+          const barHeight = (data[i] / 255) * height;
+          
+          const hue = (i / data.length) * 180 + 180;
+          ctx.fillStyle = \`hsl(\${hue}, 100%, 50%)\`;
+          
+          ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+          x += barWidth;
+        }
+      },
+      
+      circular: () => {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = Math.min(centerX, centerY) - 10;
+        const data = state.audioData.frequency;
+        
+        ctx.beginPath();
+        
+        for (let i = 0; i < data.length; i++) {
+          const angle = (i / data.length) * Math.PI * 2;
+          const amplitude = (data[i] / 255) * radius * 0.5;
+          const x = centerX + Math.cos(angle) * (radius - amplitude);
+          const y = centerY + Math.sin(angle) * (radius - amplitude);
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        
+        ctx.closePath();
+        ctx.strokeStyle = '#0ff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
+        ctx.fill();
+      },
+      
+      bars: () => {
+        const width = canvas.width;
+        const height = canvas.height;
+        const data = state.audioData.frequency;
+        const barCount = 32;
+        const barWidth = width / barCount;
+        
+        for (let i = 0; i < barCount; i++) {
+          const dataIndex = Math.floor(i * data.length / barCount);
+          const barHeight = (data[dataIndex] / 255) * height * 0.8;
+          
+          // Create gradient
+          const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
+          gradient.addColorStop(0, '#0ff');
+          gradient.addColorStop(1, '#088');
+          
+          ctx.fillStyle = gradient;
+          ctx.fillRect(i * barWidth, height - barHeight, barWidth - 2, barHeight);
+        }
+      }
+    };
     
     function drawVisualizer() {
       const width = canvas.width;
       const height = canvas.height;
       
       // Clear canvas
-      ctx.fillStyle = '#000';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
       ctx.fillRect(0, 0, width, height);
       
-      // Draw fake audio visualization (sine waves)
-      const time = Date.now() / 1000;
-      ctx.strokeStyle = '#0ff';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      
-      for (let x = 0; x < width; x++) {
-        const y = height / 2 + Math.sin((x / width) * Math.PI * 4 + time * 2) * 30 * 
-                  Math.sin(time * 0.5) * (0.5 + Math.random() * 0.5);
-        if (x === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      }
-      
-      ctx.stroke();
-      
-      // Draw frequency bars
-      const barCount = 32;
-      const barWidth = width / barCount;
-      ctx.fillStyle = '#088';
-      
-      for (let i = 0; i < barCount; i++) {
-        const barHeight = Math.random() * height * 0.7 * (0.5 + Math.sin(time * 3 + i) * 0.5);
-        ctx.fillRect(i * barWidth, height - barHeight, barWidth - 2, barHeight);
+      // Draw based on current mode
+      if (visualizers[currentMode]) {
+        visualizers[currentMode]();
       }
       
       animationId = requestAnimationFrame(drawVisualizer);
@@ -615,6 +753,30 @@ export class DazzleDashboard {
     
     // Start visualizer
     drawVisualizer();
+    
+    // Listen for audio data updates from the server
+    ws.addEventListener('message', (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'audio_data') {
+        state.audioData = message.data;
+      }
+    });
+    
+    // Simulate audio data for now (until we connect to real audio)
+    setInterval(() => {
+      // Simulate waveform data
+      for (let i = 0; i < state.audioData.waveform.length; i++) {
+        state.audioData.waveform[i] = 128 + Math.sin(i * 0.1 + Date.now() * 0.001) * 64 * Math.random();
+      }
+      
+      // Simulate frequency data
+      for (let i = 0; i < state.audioData.frequency.length; i++) {
+        const bass = i < 10 ? Math.random() * 200 + 55 : 0;
+        const mid = i >= 10 && i < 30 ? Math.random() * 150 : 0;
+        const high = i >= 30 ? Math.random() * 100 : 0;
+        state.audioData.frequency[i] = bass + mid + high;
+      }
+    }, 50);
     
     // Clean up on close
     window.addEventListener('beforeunload', () => {
