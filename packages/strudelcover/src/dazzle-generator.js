@@ -12,6 +12,7 @@ import { exportPatternUsingStrudelCC } from '@strudel/audio-export/src/exporter-
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
+import { existsSync } from 'fs';
 import { patternAudioAnalyzer } from './pattern-audio-analyzer.js';
 import { rag } from './rag/index.js';
 import { AdvancedAudioAnalyzer } from './advanced-analyzer.js';
@@ -119,6 +120,26 @@ export class DazzleGenerator {
   async generateCoverConversational(audioFile, artistName, songName, options = {}) {
     console.log(chalk.cyan(`\n🌟 Dazzle Mode: Conversational Pattern Building\n`));
     
+    // Store artist and song info
+    this.artistName = artistName;
+    this.songName = songName;
+    
+    // Check for lyrics file - try different patterns
+    const lyricsFiles = [
+      `${artistName.toLowerCase()}-${songName.toLowerCase()}.txt`,
+      `${songName.toLowerCase()}.txt`,
+      `${artistName}-${songName}.txt`,
+      `${songName}.txt`
+    ];
+    
+    for (const lyricsFile of lyricsFiles) {
+      if (existsSync(lyricsFile)) {
+        console.log(chalk.green(`📝 Found lyrics file: ${lyricsFile}`));
+        this.lyrics = await fs.readFile(lyricsFile, 'utf-8');
+        break;
+      }
+    }
+    
     // Initialize LLM
     await this.initializeLLM();
     
@@ -143,6 +164,12 @@ export class DazzleGenerator {
       
       // Extract musical features
       const { tempo, key, scale, features } = this.extractMusicalFeatures(analysis);
+      
+      // Store for later use
+      this.tempo = tempo;
+      this.key = key;
+      this.scale = scale;
+      this.features = features;
       
       // Update dashboard
       this.dashboard.setPhase(`${songName} by ${artistName} - ${tempo} BPM, Key: ${key}`);
@@ -170,41 +197,6 @@ export class DazzleGenerator {
    * Start the conversation with context about the song
    */
   async startConversation(artistName, songName, tempo, key, features, analysis) {
-    // Get an electronic example for Grimes
-    let exampleCode = '';
-    if (artistName.toLowerCase().includes('grimes')) {
-      // Use actual Grimes - Music 4 Machines pattern as reference
-      exampleCode = `
-Here's a Grimes "Music 4 Machines" pattern for reference:
-
-// Grimes style - 135 BPM
-let cpm = 135/4;
-
-// Drums with TR909 sounds
-let drums = stack(
-  sound("<bd>*4, <- sd>*4, <- cp:3>*4").bank("RolandTR909"),
-  sound("<- hh>*8").bank("LinnDrum").gain(.2),
-  sound("<sh>*8").bank("RolandTR808").gain(.25)
-);
-
-// Bass with synth bass
-let bass = cat(
-  "<c2>*4", "<g1>*4", "<eb1>*4", "<eb1!2 f1!2>*4"
-).note()
-  .n(3).sound("gm_synth_bass_1")
-  .lpf(200).lpenv(5).lpa(.5).lps(.8).lpd(.1);
-
-// Arpeggiated synth
-let synth_arpeggio = cat(
-  "<c3 c4 eb5 c3 c4 d5 c3 bb4>*8",
-  "<g2 g3 bb4 g2 g3 a4 g2 g4>*8"
-).note()
-  .n(1).sound("gm_pad_poly")
-  .decay(.95).lpf(5000)
-  .delay(".3:.225:.45")
-  .room(.8).rsize(2);`;
-    }
-    
     const initialPrompt = `Let's recreate "${artistName} - ${songName}" together using Strudel patterns.
 
 Song Analysis:
@@ -212,13 +204,16 @@ Song Analysis:
 - Key: ${key}
 - Energy: ${features.energy < 0.3 ? 'Low/Ambient' : features.energy < 0.7 ? 'Medium' : 'High'}
 - Style: ${this.inferStyle(artistName, songName, features)}
-${exampleCode}
 
 I'll help you build this song layer by layer. Let's start with a simple foundation and build from there.
 
 First, let's create a basic drum pattern for the intro. What do you think would work well for this ${features.energy < 0.3 ? 'ambient' : 'energetic'} track at ${tempo} BPM in the key of ${key}?
 
-Please provide just the Strudel code for the drum pattern, starting simple.`;
+Please provide just the Strudel code for the drum pattern, starting simple. Remember that Strudel patterns must be expressions, not variable declarations. For example:
+- Good: stack(sound("bd*4"), sound("hh*8"))
+- Not good: let drums = stack(...)
+
+Note: Please use only basic drum sounds (bd, sd, hh, cp, etc.) without bank specifications to avoid loading issues.`;
 
     this.conversation.push({ role: 'user', content: initialPrompt });
     
@@ -243,98 +238,236 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
    * Continue building the song through conversation
    */
   async buildSongThroughConversation() {
-    const steps = [
-      { 
-        prompt: "That sounds good! Now let's add a bass line that complements the drums. Keep it simple but groovy.",
-        name: "bass",
-        dashboardStep: "bass"
-      },
-      {
-        prompt: "Great! Now let's add some atmospheric pads or textures to fill out the space. Something that creates mood.",
-        name: "atmosphere",
-        dashboardStep: "atmosphere"
-      },
-      {
-        prompt: "Nice progression! Can we add some harmonic content - maybe some chords that work with the bass?",
-        name: "chords",
-        dashboardStep: "chords"
-      },
-      {
-        prompt: "This is coming together well! Let's add a lead melody or hook that catches the ear.",
-        name: "lead",
-        dashboardStep: "lead"
-      },
-      {
-        prompt: "Excellent! Now, can you combine all these elements into a complete pattern using stack()? Make sure everything works together harmonically.",
-        name: "full-combination",
-        dashboardStep: "combination"
-      },
-      {
-        prompt: "That's the intro sorted! Now let's make it more dynamic. Can you create variations for the verse, chorus, and outro sections? The verse should be a bit more stripped back, the chorus should be full energy, and the outro should wind down.",
-        name: "sections",
-        dashboardStep: "sections"
-      }
+    // First, let's understand the song structure
+    const structureStep = {
+      prompt: `Now let's think about the song structure. "${this.songName}" by ${this.artistName} typically follows a specific structure. 
+      
+Based on the original song (${this.tempo} BPM, ${this.key} key), what would be an appropriate song structure? 
+Consider sections like: intro, verse 1, pre-chorus, chorus, verse 2, bridge, final chorus, outro.
+
+${this.lyrics ? `Here are the lyrics for reference:\n\n${this.lyrics}\n` : ''}
+
+Please suggest:
+1. The song structure (e.g., Intro → Verse → Chorus → Verse → Chorus → Bridge → Chorus → Outro)
+2. How many bars each section should be
+3. What makes each section distinct musically
+4. Which lyrics go with which section (map the lyrics to the structure)`,
+      name: "structure-planning",
+      dashboardStep: "structure"
+    };
+    
+    console.log(chalk.yellow(`\n${structureStep.prompt}`));
+    
+    this.conversation.push({ role: 'user', content: structureStep.prompt });
+    const structureResponse = await this.llmProvider.generateCompletion(this.conversation);
+    this.conversation.push({ role: 'assistant', content: structureResponse });
+    
+    // Extract structure information
+    this.songStructure = await this.extractStructure(structureResponse);
+    console.log(chalk.cyan('\nSong Structure:'));
+    console.log(chalk.gray(JSON.stringify(this.songStructure, null, 2)));
+    
+    // Now build each section progressively
+    const sections = this.songStructure.sections || [
+      { name: 'intro', bars: 8 },
+      { name: 'verse1', bars: 16 },
+      { name: 'chorus', bars: 16 },
+      { name: 'verse2', bars: 16 },
+      { name: 'chorus2', bars: 16 },
+      { name: 'bridge', bars: 8 },
+      { name: 'finalChorus', bars: 16 },
+      { name: 'outro', bars: 8 }
     ];
     
-    for (const step of steps) {
-      console.log(chalk.yellow(`\n${step.prompt}`));
-      
-      this.conversation.push({ role: 'user', content: step.prompt });
-      const response = await this.llmProvider.generateCompletion(this.conversation);
-      this.conversation.push({ role: 'assistant', content: response });
-      
-      const pattern = await this.extractPattern(response);
-      console.log(chalk.cyan('\nLLM responds:'));
-      console.log(chalk.gray(pattern.substring(0, 200) + '...'));
-      
-      // Log to dashboard
-      this.dashboard.addLLMInteraction(step.name, step.prompt, response, pattern);
-      
-      // Update conversation step
-      if (step.dashboardStep) {
-        this.dashboard.updateConversationStep(step.dashboardStep, 'active');
-      }
-      
-      // Test the pattern
-      try {
-        await this.testPattern(pattern, step.name);
-        this.currentPattern = pattern; // Save working pattern
-        
-        // Give feedback
-        const feedback = this.generateFeedback(step.name, true);
-        console.log(chalk.green(feedback));
-        this.conversation.push({ role: 'user', content: feedback });
-        
-        // Mark step as complete
-        if (step.dashboardStep) {
-          this.dashboard.updateConversationStep(step.dashboardStep, 'complete');
-        }
-        
-      } catch (error) {
-        console.error(chalk.red(`Pattern error: ${error.message}`));
-        
-        // Ask for correction
-        const errorFeedback = `That pattern had an error: "${error.message}". Can you fix it? Remember to use valid Strudel syntax.`;
-        console.log(chalk.yellow(errorFeedback));
-        
-        this.conversation.push({ role: 'user', content: errorFeedback });
-        const fixResponse = await this.llmProvider.generateCompletion(this.conversation);
-        this.conversation.push({ role: 'assistant', content: fixResponse });
-        
-        const fixedPattern = await this.extractPattern(fixResponse);
-        await this.testPattern(fixedPattern, `${step.name}-fixed`);
-        this.currentPattern = fixedPattern;
-      }
-      
-      // Update dashboard
-      this.dashboard.updateProgress(Math.floor(((steps.indexOf(step) + 1) / steps.length) * 100));
+    // Build patterns for each section
+    for (const section of sections) {
+      await this.buildSection(section);
+    }
+    
+    // Now create the full song arrangement
+    await this.createFullArrangement(sections);
+  }
+  
+  /**
+   * Build a specific section through conversation
+   */
+  async buildSection(section) {
+    console.log(chalk.yellow(`\n📍 Building ${section.name} section (${section.bars} bars)`));
+    
+    const sectionPrompt = `Let's build the ${section.name} section. This is ${section.bars} bars long.
+${section.description || ''}
+${section.lyrics ? `\nLyrics for this section:\n"${section.lyrics}"` : ''}
+
+Based on what we've built so far, create patterns for this section that:
+1. Match the energy and mood of a ${section.name}
+2. Are ${section.bars} bars long
+3. Have appropriate dynamics (${this.getSectionDynamics(section.name)})
+4. Include variations to keep it interesting
+
+Please provide:
+- Drum pattern
+- Bass pattern  
+- Chord/harmony pattern
+- Lead/melody pattern (if appropriate)
+- Any atmospheric elements
+
+Remember to make it fit with the ${this.tempo} BPM and ${this.key} key.`;
+
+    this.conversation.push({ role: 'user', content: sectionPrompt });
+    const response = await this.llmProvider.generateCompletion(this.conversation);
+    this.conversation.push({ role: 'assistant', content: response });
+    
+    const pattern = await this.extractPattern(response);
+    
+    // Store section pattern
+    section.pattern = pattern;
+    
+    // Test it
+    await this.testPattern(pattern, section.name);
+    
+    // Get feedback and refine if needed
+    const feedbackPrompt = `That ${section.name} section sounds ${this.generateSectionFeedback(section.name)}. 
+${section.lyrics ? 'Make sure the rhythm and phrasing work well with the lyrics timing.' : ''}
+Can you add a smooth transition at the end to lead into the next section?`;
+    
+    this.conversation.push({ role: 'user', content: feedbackPrompt });
+    const refinedResponse = await this.llmProvider.generateCompletion(this.conversation);
+    this.conversation.push({ role: 'assistant', content: refinedResponse });
+    
+    const refinedPattern = await this.extractPattern(refinedResponse);
+    section.pattern = refinedPattern;
+    
+    // Update dashboard
+    this.dashboard.updateConversationStep(section.name, 'complete');
+  }
+  
+  /**
+   * Create the full song arrangement
+   */
+  async createFullArrangement(sections) {
+    console.log(chalk.yellow('\n🎵 Creating full song arrangement...'));
+    
+    const arrangementPrompt = `Now let's put it all together! We have these sections:
+${sections.map(s => `- ${s.name}: ${s.bars} bars`).join('\n')}
+
+Create a complete arrangement that:
+1. Flows smoothly from section to section
+2. Uses cat() or seq() to arrange sections in order
+3. Includes smooth transitions between sections
+4. If there are lyrics, add them as comments at the right moments
+5. Make sure the total length matches the original song structure
+
+The final pattern should play the complete song from start to finish.`;
+
+    this.conversation.push({ role: 'user', content: arrangementPrompt });
+    const response = await this.llmProvider.generateCompletion(this.conversation);
+    this.conversation.push({ role: 'assistant', content: response });
+    
+    this.currentPattern = await this.extractPattern(response);
+    
+    // Add lyrics check
+    if (this.songStructure.hasLyrics) {
+      await this.addLyricsComments();
     }
   }
   
   /**
-   * Generate feedback based on what was created
+   * Extract structure from LLM response
    */
-  generateFeedback(stepName, success) {
+  async extractStructure(response) {
+    const structurePrompt = `Extract the song structure from this response and format it as JSON:
+${response}
+
+Return a JSON object with:
+{
+  "sections": [
+    { "name": "intro", "bars": 8, "description": "...", "lyrics": "..." },
+    ...
+  ],
+  "hasLyrics": true/false
+}`;
+
+    const structureJson = await this.llmProvider.generateCompletion([
+      { role: 'user', content: structurePrompt }
+    ]);
+    
+    try {
+      return JSON.parse(structureJson);
+    } catch (e) {
+      // Fallback structure
+      return {
+        sections: [
+          { name: 'intro', bars: 8 },
+          { name: 'verse1', bars: 16 },
+          { name: 'chorus', bars: 16 },
+          { name: 'verse2', bars: 16 },
+          { name: 'chorus2', bars: 16 },
+          { name: 'bridge', bars: 8 },
+          { name: 'finalChorus', bars: 16 },
+          { name: 'outro', bars: 8 }
+        ],
+        hasLyrics: false
+      };
+    }
+  }
+  
+  /**
+   * Add lyrics as comments to the pattern
+   */
+  async addLyricsComments() {
+    const lyricsPrompt = `The song structure includes lyrics. Please add the lyrics as comments in the Strudel pattern at the appropriate timing.
+Current pattern:
+${this.currentPattern}
+
+Add comments like:
+// [Verse 1]
+// "First line of lyrics here"
+// "Second line of lyrics here"
+
+Make sure the comments align with when those sections play in the pattern.`;
+
+    this.conversation.push({ role: 'user', content: lyricsPrompt });
+    const response = await this.llmProvider.generateCompletion(this.conversation);
+    this.conversation.push({ role: 'assistant', content: response });
+    
+    this.currentPattern = await this.extractPattern(response);
+  }
+  
+  /**
+   * Get appropriate dynamics for a section
+   */
+  getSectionDynamics(sectionName) {
+    const dynamics = {
+      intro: 'build up gradually',
+      verse: 'moderate energy, leave space for vocals',
+      'pre-chorus': 'building tension',
+      chorus: 'high energy, full arrangement',
+      bridge: 'different feel, maybe breakdown or build',
+      outro: 'winding down, fading out'
+    };
+    
+    return dynamics[sectionName.toLowerCase().replace(/[0-9]/g, '')] || 'moderate energy';
+  }
+  
+  /**
+   * Generate contextual feedback for sections
+   */
+  generateSectionFeedback(sectionName) {
+    const feedback = {
+      intro: 'good! It sets the mood well',
+      verse: 'nice! The groove works well',
+      chorus: 'great! Very catchy and energetic',
+      bridge: 'interesting! Good contrast to the other sections',
+      outro: 'perfect! Nice way to end the song'
+    };
+    
+    return feedback[sectionName.toLowerCase().replace(/[0-9]/g, '')] || 'good';
+  }
+  
+  /**
+   * MOVED: Generate feedback based on what was created
+   */
+  generateFeedback_OLD(stepName, success) {
     const feedbacks = {
       'bass': [
         "That bass line works perfectly with the drums!",
@@ -382,17 +515,32 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
     
     console.log(chalk.gray(`Testing ${name} pattern...`));
     
+    // Send pattern to dashboard iframe
+    if (this.dashboard && this.dashboard.sendPatternTest) {
+      this.dashboard.sendPatternTest(pattern);
+    }
+    
     const result = await exportPatternUsingStrudelCC({
       pattern,
       output: outputPath,
       duration: 10,
       format: 'webm',
-      headless: false, // Always show browser in dazzle mode
+      headless: false, // Never headless
       dashboard: this.dashboard // Pass dashboard for visualization
     });
     
     if (!result.success) {
-      throw new Error(result.error || 'Pattern test failed');
+      const error = new Error(result.error || 'Pattern test failed');
+      // Pass along console errors if available
+      if (result.details && result.details.consoleErrors) {
+        error.consoleErrors = result.details.consoleErrors;
+        // Extract the actual error message from console
+        const evalError = result.details.consoleErrors.find(e => e.includes('[eval] error:'));
+        if (evalError) {
+          error.message = evalError.replace('[eval] error:', '').trim();
+        }
+      }
+      throw error;
     }
     
     return outputPath;
@@ -461,6 +609,12 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
       
       // Extract musical features
       const { tempo, key, scale, features } = this.extractMusicalFeatures(analysis);
+      
+      // Store for later use
+      this.tempo = tempo;
+      this.key = key;
+      this.scale = scale;
+      this.features = features;
       
       // Update dashboard
       this.dashboard.setPhase(`${songName} by ${artistName} - ${tempo} BPM, Key: ${key}`);
@@ -934,15 +1088,20 @@ IMPORTANT: Return ONLY the Strudel code.
   }
   
   async extractPattern(response) {
-    // Use LLM to extract just the code
-    const extractionPrompt = `Extract ONLY the Strudel pattern code from the following response. 
-Remove any explanatory text, markdown formatting, or comments before or after the code.
-Return ONLY the executable Strudel code that can be run directly.
+    // Use LLM to extract the code and convert explanations to comments
+    const extractionPrompt = `Convert the following response into valid Strudel code.
 
-Response to extract from:
+Rules:
+1. Extract all Strudel pattern code
+2. Convert any explanatory text BEFORE or AFTER code into Strudel comments (using // syntax)
+3. Keep the comments concise and relevant to understanding the pattern
+4. Remove any markdown formatting (like \`\`\`)
+5. The result must be valid, executable Strudel code
+
+Response to convert:
 ${response}
 
-IMPORTANT: Return ONLY the Strudel code, nothing else.`;
+IMPORTANT: Return ONLY Strudel code with comments. Do not add any additional explanation.`;
 
     const cleanPattern = await this.llmProvider.generateCompletion([
       { role: 'user', content: extractionPrompt }

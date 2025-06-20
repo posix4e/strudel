@@ -141,9 +141,20 @@ export class DazzleDashboard {
   }
   
   sendAudioData(waveform, frequency) {
+    // Check if we have real data
+    const hasWaveform = Array.from(waveform).some(v => v !== 128);
+    const hasFrequency = Array.from(frequency).some(v => v > 0);
+    
+    if (hasWaveform || hasFrequency) {
+      console.log('Dashboard sending real audio data to clients');
+    }
+    
     this.broadcast({
       type: 'audio_data',
-      data: { waveform, frequency }
+      data: { 
+        waveform: Array.from(waveform), // Convert to array for JSON
+        frequency: Array.from(frequency) 
+      }
     });
   }
   
@@ -151,6 +162,13 @@ export class DazzleDashboard {
     this.broadcast({
       type: 'conversation_step',
       data: { step, status }
+    });
+  }
+  
+  sendPatternTest(pattern) {
+    this.broadcast({
+      type: 'pattern_test',
+      data: { pattern }
     });
   }
 
@@ -450,6 +468,48 @@ export class DazzleDashboard {
       padding: 15px;
     }
     
+    .strudel-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 600px;
+      height: 400px;
+      background: rgba(0, 0, 0, 0.95);
+      border: 2px solid #0ff;
+      display: none;
+      z-index: 1000;
+    }
+    
+    .strudel-header {
+      padding: 10px;
+      background: #000;
+      border-bottom: 1px solid #0ff;
+      color: #ff0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .strudel-iframe {
+      width: 100%;
+      height: calc(100% - 40px);
+      border: none;
+    }
+    
+    .close-button {
+      background: rgba(255, 0, 0, 0.2);
+      border: 1px solid #f00;
+      color: #f00;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8em;
+    }
+    
+    .close-button:hover {
+      background: rgba(255, 0, 0, 0.4);
+    }
+    
     .visualizer-label {
       color: #ff0;
       font-size: 0.9em;
@@ -553,6 +613,11 @@ export class DazzleDashboard {
       <button class="viz-button" data-mode="bars">Bars</button>
     </div>
   </div>
+  
+  <div class="current-pattern" id="current-pattern" style="position: fixed; top: 20px; right: 640px; width: 400px; background: rgba(0, 0, 0, 0.95); border: 2px solid #0ff; padding: 15px; display: none;">
+    <div style="color: #ff0; margin-bottom: 10px;">Currently Testing:</div>
+    <pre style="color: #0f0; font-size: 0.8em; overflow-x: auto; max-height: 300px;" id="pattern-display"></pre>
+  </div>
 
   <script>
     // Create particles
@@ -569,6 +634,15 @@ export class DazzleDashboard {
     // WebSocket connection
     const ws = new WebSocket('ws://localhost:8888');
     let state = {};
+    
+    // Pattern display
+    function showCurrentPattern(pattern) {
+      const container = document.getElementById('current-pattern');
+      const display = document.getElementById('pattern-display');
+      
+      display.textContent = pattern;
+      container.style.display = 'block';
+    }
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -582,6 +656,9 @@ export class DazzleDashboard {
         addLLMInteraction(message.data);
       } else if (message.type === 'conversation_step') {
         updateConversationStep(message.data);
+      } else if (message.type === 'pattern_test') {
+        // Show pattern being tested
+        showCurrentPattern(message.data.pattern);
       }
     };
     
@@ -712,6 +789,11 @@ export class DazzleDashboard {
         const height = canvas.height;
         const data = state.audioData.waveform;
         
+        // Draw a simple test pattern to verify canvas is working
+        ctx.fillStyle = '#0ff';
+        ctx.fillRect(10, 10, 50, 50);
+        
+        // Draw waveform
         ctx.strokeStyle = '#0ff';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -733,6 +815,11 @@ export class DazzleDashboard {
         }
         
         ctx.stroke();
+        
+        // Draw debug text
+        ctx.fillStyle = '#0ff';
+        ctx.font = '12px monospace';
+        ctx.fillText('Data: ' + data[0] + '-' + data[data.length-1], 10, height - 10);
       },
       
       frequency: () => {
@@ -806,16 +893,20 @@ export class DazzleDashboard {
     };
     
     function drawVisualizer() {
-      const width = canvas.width;
-      const height = canvas.height;
-      
-      // Clear canvas
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-      ctx.fillRect(0, 0, width, height);
-      
-      // Draw based on current mode
-      if (visualizers[currentMode]) {
-        visualizers[currentMode]();
+      try {
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        // Clear canvas
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw based on current mode
+        if (visualizers[currentMode]) {
+          visualizers[currentMode]();
+        }
+      } catch (e) {
+        console.error('Visualizer error:', e);
       }
       
       animationId = requestAnimationFrame(drawVisualizer);
@@ -828,7 +919,21 @@ export class DazzleDashboard {
     ws.addEventListener('message', (event) => {
       const message = JSON.parse(event.data);
       if (message.type === 'audio_data') {
-        state.audioData = message.data;
+        // Convert the data properly
+        if (message.data.waveform && message.data.frequency) {
+          state.audioData.waveform = new Uint8Array(message.data.waveform);
+          state.audioData.frequency = new Uint8Array(message.data.frequency);
+          
+          // Debug: Check if we're getting real audio data
+          const hasWaveform = Array.from(state.audioData.waveform).some(v => v !== 128);
+          const hasFrequency = Array.from(state.audioData.frequency).some(v => v > 0);
+          if (hasWaveform || hasFrequency) {
+            console.log('Dashboard received real audio data!', {
+              waveformRange: [Math.min(...state.audioData.waveform), Math.max(...state.audioData.frequency)],
+              frequencyMax: Math.max(...state.audioData.frequency)
+            });
+          }
+        }
       }
     });
     

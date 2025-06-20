@@ -5,6 +5,7 @@ import { promisify } from 'util';
 import { unlink } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { browserManager } from './browser-manager.js';
 
 const execAsync = promisify(spawn);
 
@@ -77,33 +78,48 @@ export async function exportPatternUsingStrudelCC(options) {
  * Record pattern using strudel.cc
  */
 async function recordWithStrudelCC(options) {
-  const { pattern, duration, headless, quality, output, dashboard } = options;
+  const { pattern, duration, headless, quality, output, dashboard, reuseWindow } = options;
   
   // Initialize console errors array at function scope
   const consoleErrors = [];
   const consoleMessages = [];
+  
+  let browser;
+  let page;
+  let shouldCloseBrowser = false;
+  let vizInterval;
 
-  // Try to use system Chrome on macOS if available
-  const executablePath = process.platform === 'darwin' && 
-    existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome') ?
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : undefined;
+  // Use browser manager if reuseWindow is true
+  if (reuseWindow) {
+    browser = await browserManager.getBrowser({ headless });
+    page = await browserManager.getPage({ headless });
+  } else {
+    // Create new browser instance
+    shouldCloseBrowser = true;
+    
+    // Try to use system Chrome on macOS if available
+    const executablePath = process.platform === 'darwin' && 
+      existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome') ?
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : undefined;
 
-  const browser = await puppeteer.launch({
-    headless: headless ? 'new' : false,
-    executablePath,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--autoplay-policy=no-user-gesture-required',
-      '--use-fake-ui-for-media-stream',
-      '--use-fake-device-for-media-stream'
-    ],
-    timeout: 60000,
-    protocolTimeout: 240000
-  });
+    browser = await puppeteer.launch({
+      headless: headless ? 'new' : false,
+      executablePath,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--autoplay-policy=no-user-gesture-required',
+        '--use-fake-ui-for-media-stream',
+        '--use-fake-device-for-media-stream'
+      ],
+      timeout: 60000,
+      protocolTimeout: 240000
+    });
+    
+    page = await browser.newPage();
+  }
 
   try {
-    const page = await browser.newPage();
     
     // Add error logging
     page.on('error', err => {
@@ -115,8 +131,6 @@ async function recordWithStrudelCC(options) {
     });
     
     // Capture console messages including errors
-    const consoleMessages = [];
-    const consoleErrors = [];
     page.on('console', msg => {
       const text = msg.text();
       console.log('Browser console:', text);
@@ -248,7 +262,7 @@ async function recordWithStrudelCC(options) {
         window.__recordingDest = dest;
         window.__audioContext = audioContext;
         
-        // Set up audio visualization
+        // Create analyzer right away
         const analyzer = audioContext.createAnalyser();
         analyzer.fftSize = 256;
         analyzer.smoothingTimeConstant = 0.8;
@@ -257,36 +271,33 @@ async function recordWithStrudelCC(options) {
         window.__waveformData = new Uint8Array(analyzer.frequencyBinCount);
         window.__frequencyData = new Uint8Array(analyzer.frequencyBinCount);
         
-        // Intercept audio connections before they happen
+        // Create a gain node to sit in the middle
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 1;
+        
+        // Connect gain to analyzer, recorder, and destination
+        gainNode.connect(analyzer);
+        gainNode.connect(dest);
+        gainNode.connect(audioContext.destination);
+        
+        // Intercept ALL audio connections right from the start
         const originalConnect = AudioNode.prototype.connect;
-        const interceptedNodes = new WeakSet();
+        const connectedNodes = new Set();
         
         AudioNode.prototype.connect = function(target, ...args) {
-          // If connecting to destination and not already intercepted
-          if (target === audioContext.destination && !interceptedNodes.has(this)) {
-            console.log(`Audio interception: ${this.constructor.name} -> destination`);
-            interceptedNodes.add(this);
+          // If connecting to destination, redirect to our gain node
+          if (target === audioContext.destination) {
+            console.log(`Audio routing: ${this.constructor.name} -> gain -> analyzer/recorder/destination`);
             
-            // Connect to recorder as well
-            try {
-              originalConnect.call(this, dest, ...args);
-            } catch (e) {
-              console.log('Could not connect to recorder:', e.message);
-            }
-            
-            // Connect to analyzer for visualization
-            try {
-              originalConnect.call(this, window.__audioAnalyzer, ...args);
-            } catch (e) {
-              console.log('Could not connect to analyzer:', e.message);
-            }
+            // Connect to gain node instead
+            return originalConnect.call(this, gainNode, ...args);
           }
           
-          // Always do original connection
+          // Normal connection for non-destination targets
           return originalConnect.call(this, target, ...args);
         };
         
-        console.log('Audio recording infrastructure ready');
+        console.log('Audio recording and analysis infrastructure ready');
         return { success: true };
       } catch (e) {
         return { success: false, error: e.message };
@@ -371,27 +382,58 @@ async function recordWithStrudelCC(options) {
     console.log('⏳ Waiting for audio to start...');
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Start streaming visualization data to dashboard if available
+    // Start streaming visualization data
+    let vizInterval;
     if (dashboard && dashboard.sendAudioData) {
-      const vizInterval = setInterval(async () => {
+      console.log('📊 Starting audio visualization streaming...');
+      
+      vizInterval = setInterval(async () => {
         try {
           const vizData = await page.evaluate(() => {
-            return window.__currentVisualizationData || null;
+            if (window.__audioAnalyzer && window.__waveformData && window.__frequencyData) {
+              // Get fresh data
+              window.__audioAnalyzer.getByteTimeDomainData(window.__waveformData);
+              window.__audioAnalyzer.getByteFrequencyData(window.__frequencyData);
+              
+              // Debug: Check if we're getting real data
+              const hasWaveform = Array.from(window.__waveformData).some(v => v !== 128);
+              const hasFrequency = Array.from(window.__frequencyData).some(v => v > 0);
+              
+              if (!hasWaveform && !hasFrequency) {
+                // Only log occasionally to reduce spam
+                if (Math.random() < 0.05) {
+                  console.log('Warning: No audio data in analyzer');
+                }
+              } else {
+                console.log('SUCCESS: Audio data detected!',
+                  'waveform:', Math.min(...window.__waveformData), '-', Math.max(...window.__waveformData),
+                  'frequency max:', Math.max(...window.__frequencyData)
+                );
+              }
+              
+              return {
+                waveform: Array.from(window.__waveformData.slice(0, 128)),
+                frequency: Array.from(window.__frequencyData.slice(0, 64))
+              };
+            }
+            return null;
           });
           
           if (vizData && vizData.waveform && vizData.frequency) {
+            // Log that we're sending data
+            const hasData = vizData.waveform.some(v => v !== 128) || vizData.frequency.some(v => v > 0);
+            if (hasData) {
+              console.log('Sending audio data to dashboard');
+            }
             dashboard.sendAudioData(
               new Uint8Array(vizData.waveform),
               new Uint8Array(vizData.frequency)
             );
           }
         } catch (e) {
-          // Ignore errors
+          // Silently ignore errors
         }
       }, 50);
-      
-      // Stop streaming after duration
-      setTimeout(() => clearInterval(vizInterval), duration * 1000);
     }
     
     // Now start recording using the pre-setup destination
@@ -455,25 +497,11 @@ async function recordWithStrudelCC(options) {
           console.log('Audio tracks available:', dest.stream.getAudioTracks().length);
         }
         
-        // Start visualization data capture if analyzer exists
+        // Log analyzer status
         if (window.__audioAnalyzer) {
-          const vizInterval = setInterval(() => {
-            try {
-              window.__audioAnalyzer.getByteTimeDomainData(window.__waveformData);
-              window.__audioAnalyzer.getByteFrequencyData(window.__frequencyData);
-              
-              // Store for dashboard access
-              window.__currentVisualizationData = {
-                waveform: Array.from(window.__waveformData.slice(0, 128)),
-                frequency: Array.from(window.__frequencyData.slice(0, 64))
-              };
-            } catch (e) {
-              // Ignore errors during capture
-            }
-          }, 50);
-          
-          // Clean up interval when done
-          setTimeout(() => clearInterval(vizInterval), durationMs);
+          console.log('Audio analyzer is available for visualization');
+        } else {
+          console.log('Warning: Audio analyzer not available');
         }
         
         // Stop after duration
@@ -531,7 +559,14 @@ async function recordWithStrudelCC(options) {
     }
     throw error;
   } finally {
-    await browser.close();
+    // Clean up visualization interval if it exists
+    if (vizInterval) {
+      clearInterval(vizInterval);
+    }
+    // Only close browser if we created it (not reusing)
+    if (shouldCloseBrowser && browser) {
+      await browser.close();
+    }
   }
 }
 
