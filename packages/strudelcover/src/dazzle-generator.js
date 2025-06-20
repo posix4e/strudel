@@ -25,6 +25,12 @@ export class DazzleGenerator {
     this.dashboard = options.dashboard || null;
     this.analyzer = new AdvancedAudioAnalyzer();
     
+    // Track conversation history
+    this.conversation = [];
+    
+    // Track current pattern being worked on
+    this.currentPattern = null;
+    
     // Track combined patterns for each section
     this.sectionPatterns = {};
     
@@ -108,9 +114,323 @@ export class DazzleGenerator {
   }
 
   /**
+   * Generate cover in dazzle mode with conversational approach
+   */
+  async generateCoverConversational(audioFile, artistName, songName, options = {}) {
+    console.log(chalk.cyan(`\n🌟 Dazzle Mode: Conversational Pattern Building\n`));
+    
+    // Initialize LLM
+    await this.initializeLLM();
+    
+    // Initialize dashboard if not provided
+    if (!this.dashboard) {
+      this.dashboard = new DazzleDashboard();
+      try {
+        await this.dashboard.start();
+      } catch (error) {
+        if (error.code === 'EADDRINUSE') {
+          console.log(chalk.yellow('Dashboard already running on port 8888'));
+        } else {
+          throw error;
+        }
+      }
+    }
+    
+    try {
+      // Analyze audio
+      console.log(chalk.yellow('Analyzing audio...'));
+      const analysis = await this.analyzeAudio(audioFile);
+      
+      // Extract musical features
+      const { tempo, key, scale, features } = this.extractMusicalFeatures(analysis);
+      
+      // Update dashboard
+      this.dashboard.setPhase(`${songName} by ${artistName} - ${tempo} BPM, Key: ${key}`);
+      
+      // Start conversation
+      await this.startConversation(artistName, songName, tempo, key, features, analysis);
+      
+      // Build song through conversation
+      await this.buildSongThroughConversation();
+      
+      // Export final result
+      const outputPath = await this.exportConversationalResult(artistName, songName);
+      
+      console.log(chalk.green(`\n✅ Cover generated successfully: ${outputPath}`));
+      
+      return outputPath;
+      
+    } catch (error) {
+      console.error(chalk.red('Error generating cover:'), error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Start the conversation with context about the song
+   */
+  async startConversation(artistName, songName, tempo, key, features, analysis) {
+    // Get an electronic example for Grimes
+    let exampleCode = '';
+    if (artistName.toLowerCase().includes('grimes')) {
+      // Use actual Grimes - Music 4 Machines pattern as reference
+      exampleCode = `
+Here's a Grimes "Music 4 Machines" pattern for reference:
+
+// Grimes style - 135 BPM
+let cpm = 135/4;
+
+// Drums with TR909 sounds
+let drums = stack(
+  sound("<bd>*4, <- sd>*4, <- cp:3>*4").bank("RolandTR909"),
+  sound("<- hh>*8").bank("LinnDrum").gain(.2),
+  sound("<sh>*8").bank("RolandTR808").gain(.25)
+);
+
+// Bass with synth bass
+let bass = cat(
+  "<c2>*4", "<g1>*4", "<eb1>*4", "<eb1!2 f1!2>*4"
+).note()
+  .n(3).sound("gm_synth_bass_1")
+  .lpf(200).lpenv(5).lpa(.5).lps(.8).lpd(.1);
+
+// Arpeggiated synth
+let synth_arpeggio = cat(
+  "<c3 c4 eb5 c3 c4 d5 c3 bb4>*8",
+  "<g2 g3 bb4 g2 g3 a4 g2 g4>*8"
+).note()
+  .n(1).sound("gm_pad_poly")
+  .decay(.95).lpf(5000)
+  .delay(".3:.225:.45")
+  .room(.8).rsize(2);`;
+    }
+    
+    const initialPrompt = `Let's recreate "${artistName} - ${songName}" together using Strudel patterns.
+
+Song Analysis:
+- Tempo: ${tempo} BPM
+- Key: ${key}
+- Energy: ${features.energy < 0.3 ? 'Low/Ambient' : features.energy < 0.7 ? 'Medium' : 'High'}
+- Style: ${this.inferStyle(artistName, songName, features)}
+${exampleCode}
+
+I'll help you build this song layer by layer. Let's start with a simple foundation and build from there.
+
+First, let's create a basic drum pattern for the intro. What do you think would work well for this ${features.energy < 0.3 ? 'ambient' : 'energetic'} track at ${tempo} BPM in the key of ${key}?
+
+Please provide just the Strudel code for the drum pattern, starting simple.`;
+
+    this.conversation.push({ role: 'user', content: initialPrompt });
+    
+    const response = await this.llmProvider.generateCompletion(this.conversation);
+    this.conversation.push({ role: 'assistant', content: response });
+    
+    // Extract and test the pattern
+    const pattern = this.extractPattern(response);
+    console.log(chalk.cyan('\nLLM suggests:'));
+    console.log(chalk.gray(pattern));
+    
+    // Log to dashboard
+    this.dashboard.addLLMInteraction('conversation-start', initialPrompt, response, pattern);
+    this.dashboard.updateConversationStep('start', 'complete');
+    this.dashboard.updateConversationStep('drums', 'active');
+    
+    // Test it
+    await this.testPattern(pattern, 'initial-drums');
+  }
+  
+  /**
+   * Continue building the song through conversation
+   */
+  async buildSongThroughConversation() {
+    const steps = [
+      { 
+        prompt: "That sounds good! Now let's add a bass line that complements the drums. Keep it simple but groovy.",
+        name: "bass",
+        dashboardStep: "bass"
+      },
+      {
+        prompt: "Great! Now let's add some atmospheric pads or textures to fill out the space. Something that creates mood.",
+        name: "atmosphere",
+        dashboardStep: "atmosphere"
+      },
+      {
+        prompt: "Nice progression! Can we add some harmonic content - maybe some chords that work with the bass?",
+        name: "chords",
+        dashboardStep: "chords"
+      },
+      {
+        prompt: "This is coming together well! Let's add a lead melody or hook that catches the ear.",
+        name: "lead",
+        dashboardStep: "lead"
+      },
+      {
+        prompt: "Excellent! Now, can you combine all these elements into a complete pattern using stack()? Make sure everything works together harmonically.",
+        name: "full-combination",
+        dashboardStep: "combination"
+      },
+      {
+        prompt: "That's the intro sorted! Now let's make it more dynamic. Can you create variations for the verse, chorus, and outro sections? The verse should be a bit more stripped back, the chorus should be full energy, and the outro should wind down.",
+        name: "sections",
+        dashboardStep: "sections"
+      }
+    ];
+    
+    for (const step of steps) {
+      console.log(chalk.yellow(`\n${step.prompt}`));
+      
+      this.conversation.push({ role: 'user', content: step.prompt });
+      const response = await this.llmProvider.generateCompletion(this.conversation);
+      this.conversation.push({ role: 'assistant', content: response });
+      
+      const pattern = this.extractPattern(response);
+      console.log(chalk.cyan('\nLLM responds:'));
+      console.log(chalk.gray(pattern.substring(0, 200) + '...'));
+      
+      // Log to dashboard
+      this.dashboard.addLLMInteraction(step.name, step.prompt, response, pattern);
+      
+      // Update conversation step
+      if (step.dashboardStep) {
+        this.dashboard.updateConversationStep(step.dashboardStep, 'active');
+      }
+      
+      // Test the pattern
+      try {
+        await this.testPattern(pattern, step.name);
+        this.currentPattern = pattern; // Save working pattern
+        
+        // Give feedback
+        const feedback = this.generateFeedback(step.name, true);
+        console.log(chalk.green(feedback));
+        this.conversation.push({ role: 'user', content: feedback });
+        
+        // Mark step as complete
+        if (step.dashboardStep) {
+          this.dashboard.updateConversationStep(step.dashboardStep, 'complete');
+        }
+        
+      } catch (error) {
+        console.error(chalk.red(`Pattern error: ${error.message}`));
+        
+        // Ask for correction
+        const errorFeedback = `That pattern had an error: "${error.message}". Can you fix it? Remember to use valid Strudel syntax.`;
+        console.log(chalk.yellow(errorFeedback));
+        
+        this.conversation.push({ role: 'user', content: errorFeedback });
+        const fixResponse = await this.llmProvider.generateCompletion(this.conversation);
+        this.conversation.push({ role: 'assistant', content: fixResponse });
+        
+        const fixedPattern = this.extractPattern(fixResponse);
+        await this.testPattern(fixedPattern, `${step.name}-fixed`);
+        this.currentPattern = fixedPattern;
+      }
+      
+      // Update dashboard
+      this.dashboard.updateProgress(Math.floor(((steps.indexOf(step) + 1) / steps.length) * 100));
+    }
+  }
+  
+  /**
+   * Generate feedback based on what was created
+   */
+  generateFeedback(stepName, success) {
+    const feedbacks = {
+      'bass': [
+        "That bass line works perfectly with the drums!",
+        "Nice groove! The bass really locks in with the kick pattern.",
+        "Great low-end foundation!"
+      ],
+      'atmosphere': [
+        "Those pads add a beautiful texture!",
+        "Perfect atmospheric touch - really sets the mood.",
+        "Love how spacious that sounds!"
+      ],
+      'chords': [
+        "The harmonic progression fits perfectly!",
+        "Those chords add great depth to the arrangement.",
+        "Nice voicings - they sit well in the mix!"
+      ],
+      'lead': [
+        "That melody is catchy!",
+        "Great hook - it really stands out!",
+        "The lead line adds the perfect focal point!"
+      ],
+      'full-combination': [
+        "Everything blends together beautifully!",
+        "The full arrangement sounds cohesive and balanced!",
+        "All the elements work together perfectly!"
+      ]
+    };
+    
+    if (success && feedbacks[stepName]) {
+      return feedbacks[stepName][Math.floor(Math.random() * feedbacks[stepName].length)];
+    }
+    
+    return success ? "That sounds great!" : "Let's try to fix that.";
+  }
+  
+  /**
+   * Test a pattern by exporting it
+   */
+  async testPattern(pattern, name) {
+    const filename = `test-${name}-${Date.now()}.webm`;
+    const outputPath = path.join(process.cwd(), 'previews', filename);
+    
+    // Ensure directory exists
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    
+    console.log(chalk.gray(`Testing ${name} pattern...`));
+    
+    const result = await exportPatternUsingStrudelCC({
+      pattern,
+      output: outputPath,
+      duration: 10,
+      format: 'webm',
+      headless: true // Use headless for testing
+    });
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Pattern test failed');
+    }
+    
+    return outputPath;
+  }
+  
+  /**
+   * Export the final conversational result
+   */
+  async exportConversationalResult(artistName, songName) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `${artistName}-${songName}-conversational-${timestamp}.webm`;
+    const outputPath = path.join(process.cwd(), 'output', filename);
+    
+    // Ensure directory exists
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    
+    console.log(chalk.cyan('\n🎵 Exporting final composition...'));
+    
+    const result = await exportPatternUsingStrudelCC({
+      pattern: this.currentPattern,
+      output: outputPath,
+      duration: 180, // 3 minutes
+      format: 'webm',
+      headless: false // Show browser for final export
+    });
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Final export failed');
+    }
+    
+    return outputPath;
+  }
+
+  /**
    * Generate cover in dazzle mode with progressive pattern building
    */
   async generateCover(audioFile, artistName, songName, options = {}) {
+    // Use conversational approach
+    return this.generateCoverConversational(audioFile, artistName, songName, options);
     console.log(chalk.cyan(`\n🌟 Dazzle Mode: Progressive Pattern Building\n`));
     
     // Initialize LLM

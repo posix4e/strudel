@@ -146,6 +146,13 @@ export class DazzleDashboard {
       data: { waveform, frequency }
     });
   }
+  
+  updateConversationStep(step, status = 'active') {
+    this.broadcast({
+      type: 'conversation_step',
+      data: { step, status }
+    });
+  }
 
   stop() {
     if (this.wss) {
@@ -404,6 +411,36 @@ export class DazzleDashboard {
       overflow-y: auto;
     }
     
+    .conversation-flow {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 300px;
+      max-height: 400px;
+      background: rgba(0, 0, 0, 0.95);
+      border: 2px solid #0ff;
+      padding: 15px;
+      overflow-y: auto;
+    }
+    
+    .conversation-step {
+      margin-bottom: 10px;
+      padding: 8px;
+      background: rgba(0, 255, 255, 0.05);
+      border-left: 3px solid #088;
+      font-size: 0.9em;
+    }
+    
+    .conversation-step.active {
+      border-left-color: #0ff;
+      background: rgba(0, 255, 255, 0.1);
+    }
+    
+    .conversation-step.complete {
+      border-left-color: #0f0;
+      opacity: 0.7;
+    }
+    
     .visualizer-container {
       position: fixed;
       bottom: 20px;
@@ -492,6 +529,20 @@ export class DazzleDashboard {
     <div class="llm-content" id="llm-content"></div>
   </div>
   
+  <div class="conversation-flow">
+    <div class="llm-header">Conversation Progress</div>
+    <div id="conversation-steps">
+      <div class="conversation-step" data-step="start">🎵 Starting conversation...</div>
+      <div class="conversation-step" data-step="drums">🥁 Building drums</div>
+      <div class="conversation-step" data-step="bass">🎸 Adding bass</div>
+      <div class="conversation-step" data-step="atmosphere">🌊 Creating atmosphere</div>
+      <div class="conversation-step" data-step="chords">🎹 Adding chords</div>
+      <div class="conversation-step" data-step="lead">🎵 Creating lead melody</div>
+      <div class="conversation-step" data-step="combination">🎛️ Combining elements</div>
+      <div class="conversation-step" data-step="sections">📍 Building sections</div>
+    </div>
+  </div>
+  
   <div class="visualizer-container">
     <canvas id="visualizer" width="400" height="100"></canvas>
     <div class="visualizer-label">Audio Output Visualization</div>
@@ -529,8 +580,27 @@ export class DazzleDashboard {
         updatePattern(message.data);
       } else if (message.type === 'llm_interaction') {
         addLLMInteraction(message.data);
+      } else if (message.type === 'conversation_step') {
+        updateConversationStep(message.data);
       }
     };
+    
+    function updateConversationStep(data) {
+      const steps = document.querySelectorAll('.conversation-step');
+      steps.forEach(step => {
+        if (step.dataset.step === data.step) {
+          step.classList.remove('active', 'complete');
+          step.classList.add(data.status);
+        } else if (data.status === 'active') {
+          // Mark previous steps as complete
+          const currentIndex = Array.from(steps).findIndex(s => s.dataset.step === data.step);
+          const stepIndex = Array.from(steps).indexOf(step);
+          if (stepIndex < currentIndex) {
+            step.classList.add('complete');
+          }
+        }
+      });
+    }
 
     function updateUI() {
       // Update status
