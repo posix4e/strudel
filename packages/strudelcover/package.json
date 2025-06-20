@@ -8,7 +8,8 @@
     "strudelcover": "./src/cli.js"
   },
   "scripts": {
-    "test": "node test/test.js"
+    "test": "node test/test.js",
+    "cover": "node src/cli.js"
   },
   "dependencies": {
     "@strudel/audio-export": "workspace:*",

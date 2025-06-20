@@ -6,7 +6,7 @@ import StrudelAudioExport from '@strudel/audio-export';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
-import { analyzePatternError, buildErrorRecoveryPrompt, createFallbackPattern } from './error-recovery.js';
+import { analyzePatternError, buildErrorRecoveryPrompt } from './error-recovery.js';
 
 /**
  * StrudelCover - AI-powered song recreation in Strudel
@@ -21,6 +21,7 @@ export class StrudelCover {
     
     // Complex mode for full songs
     this.complexMode = options.complex || false;
+    
     
     this.analyzer = new AudioAnalyzer();
     
@@ -104,7 +105,8 @@ export class StrudelCover {
     
     this.generator = new PatternGenerator(llmProvider, { 
       sparkle: this.sparkleMode,
-      complex: this.complexMode 
+      complex: this.complexMode,
+      dazzle: this.dazzleMode
     });
   }
 
@@ -172,12 +174,14 @@ export class StrudelCover {
         writeFileSync(patternPath, pattern, 'utf8');
         
         if (this.sparkleMode) {
-          await this.sparkle.showExportProgress(Math.min(originalAnalysis.duration, 30));
+          console.log('\n' + chalk.bold.cyan('🎧 STARTING AUDIO SYNTHESIS 🎧'));
+          console.log(chalk.dim('Watch the browser window for live visualization...'));
         }
         
         let exportResult;
         let errorRecoveryAttempts = 0;
-        const maxErrorRecovery = 2;
+        const maxErrorRecovery = 5; // Increased from 2
+        const errorAttempts = [];
         
         while (errorRecoveryAttempts <= maxErrorRecovery) {
           try {
@@ -202,28 +206,41 @@ export class StrudelCover {
               
               // Analyze the error
               const errorAnalysis = analyzePatternError(pattern, error.details);
-              console.log(chalk.gray('Detected issues:'));
-              errorAnalysis.errors.forEach(e => console.log(chalk.gray(`  - ${e}`)));
+              
+              // In sparkle mode, show runtime error with visual effects
+              if (this.sparkleMode && error.details?.consoleErrors?.length > 0) {
+                const runtimeError = error.details.consoleErrors[0];
+                await this.sparkle.showRuntimeError(runtimeError, pattern);
+                await this.sparkle.showLayerAnalysis(pattern, error.details);
+              } else {
+                console.log(chalk.gray('Detected issues:'));
+                errorAnalysis.errors.forEach(e => console.log(chalk.gray(`  - ${e}`)));
+              }
+              
               
               // Try to fix with LLM
-              const recoveryPrompt = buildErrorRecoveryPrompt(pattern, errorAnalysis, originalAnalysis);
-              pattern = await this.generator.fixPatternError(recoveryPrompt, originalAnalysis);
+              let sparkleRuntimeError = null;
+              if (this.sparkleMode && error.details?.consoleErrors?.length > 0) {
+                sparkleRuntimeError = error.details.consoleErrors[0];
+              }
+              // Track this attempt and its error
+              const errorMessage = sparkleRuntimeError || errorAnalysis.errors[0] || 'Pattern is generating silence';
+              errorAttempts.push({
+                pattern: pattern,
+                error: errorMessage
+              });
+              
+              const recoveryPrompt = buildErrorRecoveryPrompt(pattern, errorAnalysis, originalAnalysis, sparkleRuntimeError);
+              pattern = await this.generator.fixPatternError(recoveryPrompt, originalAnalysis, errorAttempts);
               
               // Save the fixed pattern
               writeFileSync(patternPath + `.fix${errorRecoveryAttempts}`, pattern, 'utf8');
               console.log(chalk.green('Generated fixed pattern, retrying...'));
               
             } else if (errorRecoveryAttempts >= maxErrorRecovery) {
-              // Final fallback
-              console.log(chalk.red('\n❌ Error recovery failed. Using fallback pattern...'));
-              pattern = createFallbackPattern(originalAnalysis.tempo, originalAnalysis.key);
-              writeFileSync(patternPath + '.fallback', pattern, 'utf8');
-              
-              await this.exporter.exportToFile(pattern, audioPath, {
-                duration: Math.min(originalAnalysis.duration, 30),
-                format: 'wav'
-              });
-              break;
+              // Give up after max attempts
+              console.log(chalk.red('\n❌ Error recovery failed after maximum attempts.'));
+              throw new Error('Unable to generate working pattern after ' + maxErrorRecovery + ' attempts');
             } else {
               throw error; // Re-throw if not a silence error
             }
@@ -320,6 +337,11 @@ export class StrudelCover {
       console.log(chalk.gray(`Final score: ${bestScore}/100`));
       console.log(chalk.gray(`Pattern saved to: ${finalPatternPath}`));
       console.log(chalk.gray(`Audio saved to: ${results.finalAudioPath}`));
+      
+      // Show learned corrections in sparkle mode
+      if (this.sparkleMode) {
+        this.sparkle.showLearnedCorrections();
+      }
       
       return results;
       

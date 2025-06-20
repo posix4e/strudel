@@ -9,6 +9,7 @@ export class SparkleMode {
     this.matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
     this.colors = ['green', 'cyan', 'magenta', 'yellow', 'blue'];
     this.spinners = [];
+    this.learnedErrors = new Map(); // Store learned error corrections
   }
 
   /**
@@ -209,7 +210,8 @@ export class SparkleMode {
     
     // Show prompt preview
     console.log(chalk.cyan('PROMPT INJECTION:'));
-    console.log(chalk.dim(prompt.substring(0, 200) + '...'));
+    const promptText = typeof prompt === 'string' ? prompt : JSON.stringify(prompt);
+    console.log(chalk.dim(promptText.substring(0, 200) + '...'));
     
     // Neural network animation with ora
     const spinner = ora('Activating neural pathways...').start();
@@ -362,6 +364,153 @@ export class SparkleMode {
       }
       process.stdout.write('\x1b[2J\x1b[H' + output);
       await this.sleep(50);
+    }
+  }
+
+  /**
+   * Show runtime error with visual effects
+   */
+  async showRuntimeError(error, pattern) {
+    console.log('\n');
+    console.log(chalk.red('╔═══════════════════════════════════════╗'));
+    console.log(chalk.red('║   💀 RUNTIME ERROR DETECTED 💀   ║'));
+    console.log(chalk.red('╚═══════════════════════════════════════╝'));
+    
+    // Glitch effect
+    for (let i = 0; i < 3; i++) {
+      process.stdout.write('\r' + chalk.red.bold('ERROR: ') + this.generateGlitchText(error.substring(0, 50)));
+      await this.sleep(100);
+    }
+    console.log('\n');
+    
+    // Show error details
+    console.log(chalk.red('ERROR MESSAGE:'));
+    console.log(chalk.yellow(error));
+    
+    // Learn from error
+    if (error.includes('is not defined') || error.includes('is not a function')) {
+      const match = error.match(/(\w+)\s+is not (defined|a function)/);
+      if (match) {
+        const invalidName = match[1];
+        console.log(chalk.cyan(`\n🧠 LEARNING: "${invalidName}" is not valid`));
+        
+        // Common corrections
+        const corrections = {
+          'triangle': 'tri',
+          'sawtooth': 'saw'
+        };
+        
+        if (corrections[invalidName]) {
+          this.learnedErrors.set(invalidName, corrections[invalidName]);
+          console.log(chalk.green(`✓ CORRECTION: Use "${corrections[invalidName]}" instead`));
+        }
+      }
+    }
+    
+    await this.sleep(1000);
+  }
+
+  /**
+   * Generate glitch text effect
+   */
+  generateGlitchText(text) {
+    const glitchChars = '█▓▒░╬═║╔╗╚╝';
+    return text.split('').map(char => 
+      Math.random() > 0.7 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : char
+    ).join('');
+  }
+
+  /**
+   * Show learned corrections
+   */
+  showLearnedCorrections() {
+    if (this.learnedErrors.size > 0) {
+      console.log(chalk.cyan('\n╔═══════════════════════════════════════╗'));
+      console.log(chalk.cyan('║   🧠 LEARNED CORRECTIONS 🧠   ║'));
+      console.log(chalk.cyan('╚═══════════════════════════════════════╝'));
+      
+      this.learnedErrors.forEach((correct, wrong) => {
+        console.log(chalk.gray(`  "${wrong}" → "${correct}"`));
+      });
+    }
+  }
+
+  /**
+   * Extract layers from a stack pattern for individual testing
+   */
+  extractLayers(pattern) {
+    const stackMatch = pattern.match(/stack\s*\(([\s\S]*?)\)/);
+    if (!stackMatch) return [];
+    
+    const stackContent = stackMatch[1];
+    const layers = [];
+    let currentLayer = '';
+    let depth = 0;
+    let inString = false;
+    let stringChar = null;
+    
+    for (let i = 0; i < stackContent.length; i++) {
+      const char = stackContent[i];
+      const prevChar = i > 0 ? stackContent[i - 1] : '';
+      
+      if ((char === '"' || char === "'") && prevChar !== '\\') {
+        if (!inString) {
+          inString = true;
+          stringChar = char;
+        } else if (char === stringChar) {
+          inString = false;
+          stringChar = null;
+        }
+      }
+      
+      if (!inString) {
+        if (char === '(') depth++;
+        if (char === ')') depth--;
+        
+        if (char === ',' && depth === 0) {
+          if (currentLayer.trim()) {
+            layers.push(currentLayer.trim());
+          }
+          currentLayer = '';
+          continue;
+        }
+      }
+      
+      currentLayer += char;
+    }
+    
+    if (currentLayer.trim()) {
+      layers.push(currentLayer.trim());
+    }
+    
+    return layers;
+  }
+
+  /**
+   * Show layer-by-layer error analysis with visual effects
+   */
+  async showLayerAnalysis(pattern, errorDetails) {
+    console.log(chalk.magenta('\n╔═══════════════════════════════════════╗'));
+    console.log(chalk.magenta('║   🔬 LAYER ANALYSIS MODE 🔬   ║'));
+    console.log(chalk.magenta('╚═══════════════════════════════════════╝'));
+    
+    const layers = this.extractLayers(pattern);
+    console.log(chalk.cyan(`\nFound ${layers.length} layers in stack:`));
+    
+    layers.forEach((layer, i) => {
+      const preview = layer.substring(0, 50).replace(/\n/g, ' ');
+      console.log(chalk.dim(`  Layer ${i + 1}: ${preview}${layer.length > 50 ? '...' : ''}`));
+    });
+    
+    // Show which layer might have the error
+    if (errorDetails?.consoleErrors?.length > 0) {
+      const errorText = errorDetails.consoleErrors[0];
+      layers.forEach((layer, i) => {
+        if (errorText.includes('saw') && layer.includes('.s("saw")')) {
+          console.log(chalk.red(`\n⚠️  Layer ${i + 1} might have the error!`));
+          console.log(chalk.yellow(`   Suggestion: Check if "saw" sound is available`));
+        }
+      });
     }
   }
 

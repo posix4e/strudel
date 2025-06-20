@@ -35,19 +35,18 @@ export class PatternGenerator {
     }
     
     await this.initializeLLM();
-    const prompt = this.buildPrompt(analysis, artistName, songName);
+    const prompt = await this.buildPrompt(analysis, artistName, songName);
     
     const messages = [
       {
         role: "system",
-        content: `You are an expert at creating Strudel live coding patterns. 
-                  Generate patterns that accurately recreate songs based on audio analysis data.
-                  Use Strudel syntax, NOT TidalCycles. Key differences:
-                  - Use setcps() not cps
-                  - Use s() for samples, n() for notes
-                  - Use .stack() not $ and #
-                  - Chain methods with dots
-                  Only respond with valid Strudel JavaScript code, no explanations.`
+        content: `You create Strudel live coding patterns. Generate patterns based on the audio analysis.
+                  Only respond with valid Strudel JavaScript code.
+                  
+                  Basic Strudel syntax:
+                  - Samples: s("bd"), s("cp"), s("hh") - these are drum sounds
+                  - Synths: n("60").s("sine"), n("c4").s("saw") - these are melodic sounds
+                  - "sine", "saw", "triangle", "square" are SYNTHS not samples - must use with n().s()`
       },
       {
         role: "user",
@@ -86,9 +85,8 @@ export class PatternGenerator {
     const messages = [
       {
         role: "system",
-        content: `You are an expert at refining Strudel patterns to match target songs.
-                  Adjust the provided pattern based on the comparison data.
-                  Only respond with valid Strudel code, no explanations.`
+        content: `You refine Strudel patterns. Adjust based on the comparison data.
+                  Only respond with valid Strudel code.`
       },
       {
         role: "user",
@@ -113,10 +111,11 @@ export class PatternGenerator {
     return pattern;
   }
 
+
   /**
    * Build prompt for initial generation
    */
-  buildPrompt(analysis, artistName, songName) {
+  async buildPrompt(analysis, artistName, songName) {
     const { tempo, key, rhythm, features } = analysis;
     
     // Get MIDI numbers for the key
@@ -140,8 +139,6 @@ Detected Rhythm Pattern:
 - Snare positions: ${rhythm.snare.length > 0 ? rhythm.snare.join(', ') : 'None detected'}
 - Hihat positions: ${rhythm.hihat.length > 0 ? rhythm.hihat.join(', ') : 'None detected'}
 
-Create a Strudel pattern for this song. Be creative and use multiple layers to capture the essence of the music.
-
 Key information:
 - Tempo: ${tempo} BPM (use setcps(${tempo}/60/4))
 - Key: ${key}
@@ -155,28 +152,28 @@ Key information:
 - Energy: ${features.energy.toFixed(2)} (${this.describeLevel(features.energy)})
 - Brightness: ${features.spectralCentroid.toFixed(0)} Hz (${this.describeBrightness(features.spectralCentroid)})
 
-Available Strudel features to use:
-- Drums: s("bd"), s("sd"), s("hh"), s("cp"), s("oh"), s("rd"), s("sh")
-- Synths: s("sawtooth"), s("square"), s("triangle"), s("sine")
-- Effects: .gain(), .room(), .delay(), .pan(), .speed(), .slow(), .fast()
-- Patterns: Can use *, /, <>, [], ~ for complex rhythms
-- Notes: Use n() with MIDI numbers (60 = C4, 72 = C5)
+Create a Strudel pattern that captures the essence of this song.
 
 Suggested drum pattern (${suggestedDrumPattern.description}):
 ${generateDrumStack(suggestedDrumPattern, 0.6)}
 
-Example pattern structure:
+Working example:
 setcps(${tempo}/60/4)
 $: stack(
-  // Drums
-  ${generateDrumStack(suggestedDrumPattern, 0.7)},
-  // Bass (root notes)
-  n("${scale.root - 24} ~ ${scale.root - 12} ~").s("sawtooth").gain(0.4).lpf(800),
-  // Chords/pads
+  // Drums - use s() for samples
+  s("bd ~ ~ bd").gain(0.7),
+  s("~ cp ~ cp").gain(0.5),
+  s("hh*8").gain(0.3),
+  // Bass - use n() with .s() for synths
+  n("${scale.root - 24} ~ ${scale.root - 12} ~").s("saw").gain(0.4).lpf(800),
+  // Pads
   n("<${scale.root} ${scale.third} ${scale.fifth}>").s("square").gain(0.2).room(0.5),
-  // Lead melody
+  // Lead - triangle synth
   n("~ ${scale.root + 12} ~ ${scale.fifth + 12}").s("triangle").gain(0.3).delay(0.25)
 ).room(0.3)
+
+Valid effects: .gain(), .room(), .delay(), .lpf(), .hpf(), .pan()
+DO NOT use: .reverb(), .chorus(), or other effects
 
 Create something that captures the feel of "${songName}" by ${artistName}.`;
   }
@@ -184,22 +181,34 @@ Create something that captures the feel of "${songName}" by ${artistName}.`;
   /**
    * Fix pattern errors using LLM
    */
-  async fixPatternError(errorPrompt, analysis) {
+  async fixPatternError(errorPrompt, analysis, previousAttempts = []) {
     await this.initializeLLM();
     
     const messages = [
       {
         role: "system",
-        content: `You are an expert at fixing Strudel pattern errors.
-                  Fix the pattern to ensure it generates audio successfully.
-                  Use only valid Strudel sounds and syntax.
-                  Only respond with valid Strudel code, no explanations.`
-      },
-      {
-        role: "user",
-        content: errorPrompt
+        content: `You fix Strudel pattern errors.
+                  Only respond with valid Strudel code.`
       }
     ];
+    
+    // Add previous attempts and their errors to the conversation
+    previousAttempts.forEach(attempt => {
+      messages.push({
+        role: "assistant",
+        content: attempt.pattern
+      });
+      messages.push({
+        role: "user",
+        content: `Error: ${attempt.error}`
+      });
+    });
+    
+    // Add the current error prompt
+    messages.push({
+      role: "user",
+      content: errorPrompt
+    });
     
     const completion = await this.llm.generateCompletion(messages, {
       temperature: 0.2 // Low temperature for reliable fixes
