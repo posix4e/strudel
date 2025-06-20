@@ -1,0 +1,32 @@
+{
+  "name": "@strudel/audio-export",
+  "version": "0.1.0",
+  "description": "Audio export tools for Strudel - convert patterns to audio files",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "strudel-export": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "dependencies": {
+    "@strudel/web": "workspace:*",
+    "puppeteer": "^21.0.0",
+    "commander": "^11.0.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "ora": "^7.0.0",
+    "chalk": "^5.0.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "strudel",
+    "audio",
+    "export",
+    "recording",
+    "wav",
+    "mp3"
+  ],
+  "author": "",
+  "license": "AGPL-3.0+"
+}

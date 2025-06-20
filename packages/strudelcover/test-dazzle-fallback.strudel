@@ -1,0 +1,8 @@
+// Fallback pattern for testing
+setcps(150/60/4)
+
+$: stack(
+  s("bd*4, [~ sd]*2, hh*8"),
+  note("<g2 b2 d3 e3>").sound("sawtooth").lpf(400).gain(0.3),
+  note("g4 ~ b4 ~ d5 ~ e5 ~").sound("sine").delay(0.4).gain(0.5)
+).room(0.2)
