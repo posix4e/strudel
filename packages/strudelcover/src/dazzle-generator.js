@@ -226,7 +226,7 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
     this.conversation.push({ role: 'assistant', content: response });
     
     // Extract and test the pattern
-    const pattern = this.extractPattern(response);
+    const pattern = await this.extractPattern(response);
     console.log(chalk.cyan('\nLLM suggests:'));
     console.log(chalk.gray(pattern));
     
@@ -283,7 +283,7 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
       const response = await this.llmProvider.generateCompletion(this.conversation);
       this.conversation.push({ role: 'assistant', content: response });
       
-      const pattern = this.extractPattern(response);
+      const pattern = await this.extractPattern(response);
       console.log(chalk.cyan('\nLLM responds:'));
       console.log(chalk.gray(pattern.substring(0, 200) + '...'));
       
@@ -321,7 +321,7 @@ Please provide just the Strudel code for the drum pattern, starting simple.`;
         const fixResponse = await this.llmProvider.generateCompletion(this.conversation);
         this.conversation.push({ role: 'assistant', content: fixResponse });
         
-        const fixedPattern = this.extractPattern(fixResponse);
+        const fixedPattern = await this.extractPattern(fixResponse);
         await this.testPattern(fixedPattern, `${step.name}-fixed`);
         this.currentPattern = fixedPattern;
       }
@@ -933,48 +933,28 @@ IMPORTANT: Return ONLY the Strudel code.
     return prompt;
   }
   
-  extractPattern(response) {
-    // Remove any markdown code blocks first
-    let cleaned = response
+  async extractPattern(response) {
+    // Use LLM to extract just the code
+    const extractionPrompt = `Extract ONLY the Strudel pattern code from the following response. 
+Remove any explanatory text, markdown formatting, or comments before or after the code.
+Return ONLY the executable Strudel code that can be run directly.
+
+Response to extract from:
+${response}
+
+IMPORTANT: Return ONLY the Strudel code, nothing else.`;
+
+    const cleanPattern = await this.llmProvider.generateCompletion([
+      { role: 'user', content: extractionPrompt }
+    ]);
+    
+    // Basic cleanup just in case
+    return cleanPattern
       .replace(/```javascript\n?/g, '')
       .replace(/```js\n?/g, '')
       .replace(/```strudel\n?/g, '')
       .replace(/```\n?/g, '')
       .trim();
-    
-    // Check if the response contains $: (which is mini-notation)
-    const dollarColonIndex = cleaned.indexOf('$:');
-    if (dollarColonIndex !== -1) {
-      // Remove the $: prefix - it's not valid JavaScript
-      let pattern = cleaned.substring(dollarColonIndex + 2).trim();
-      
-      // Only cut off at explanation markers, not blank lines
-      const explanationMarkers = [
-        '\nExplanation:',
-        '\nNote:',
-        '\nThis pattern',
-        '\nThe pattern',
-        '\nI\'ve created',
-        '\nI created',
-        '\nHere\'s what',
-        '\n---',
-        '\n###',
-        '\n##'
-      ];
-      
-      let endIndex = pattern.length;
-      for (const marker of explanationMarkers) {
-        const idx = pattern.indexOf(marker);
-        if (idx > 0 && idx < endIndex) {
-          endIndex = idx;
-        }
-      }
-      
-      return pattern.substring(0, endIndex).trim();
-    }
-    
-    // Return the cleaned pattern as-is (no $: prefix)
-    return cleaned;
   }
   
   inferStyle(artistName, songName, features) {
