@@ -326,16 +326,26 @@ Remember to make it fit with the ${this.tempo} BPM and ${this.key} key.`;
     await this.testPattern(pattern, section.name);
     
     // Get feedback and refine if needed
-    const feedbackPrompt = `That ${section.name} section sounds ${this.generateSectionFeedback(section.name)}. 
+    try {
+      const feedbackPrompt = `That ${section.name} section sounds ${this.generateSectionFeedback(section.name)}. 
 ${section.lyrics ? 'Make sure the rhythm and phrasing work well with the lyrics timing.' : ''}
 Can you add a smooth transition at the end to lead into the next section?`;
-    
-    this.conversation.push({ role: 'user', content: feedbackPrompt });
-    const refinedResponse = await this.llmProvider.generateCompletion(this.conversation);
-    this.conversation.push({ role: 'assistant', content: refinedResponse });
-    
-    const refinedPattern = await this.extractPattern(refinedResponse);
-    section.pattern = refinedPattern;
+      
+      this.conversation.push({ role: 'user', content: feedbackPrompt });
+      const refinedResponse = await this.llmProvider.generateCompletion(this.conversation);
+      this.conversation.push({ role: 'assistant', content: refinedResponse });
+      
+      const refinedPattern = await this.extractPattern(refinedResponse);
+      section.pattern = refinedPattern;
+      
+      // Test the refined pattern
+      await this.testPattern(refinedPattern, `${section.name}-refined`);
+      
+    } catch (error) {
+      // Enhanced error handling with intelligent feedback
+      console.error(chalk.red(`Error with ${section.name} section: ${error.message}`));
+      section.pattern = await this.handlePatternError(pattern, error, section);
+    }
     
     // Update dashboard
     this.dashboard.updateConversationStep(section.name, 'complete');
@@ -462,6 +472,235 @@ Make sure the comments align with when those sections play in the pattern.`;
     };
     
     return feedback[sectionName.toLowerCase().replace(/[0-9]/g, '')] || 'good';
+  }
+  
+  /**
+   * Enhanced error handling with intelligent feedback to LLM
+   */
+  async handlePatternError(originalPattern, error, section) {
+    console.log(chalk.yellow('🔧 Analyzing error and providing intelligent feedback to LLM...'));
+    
+    // Analyze the error type and context
+    const errorAnalysis = this.analyzeError(error, originalPattern);
+    
+    // Create detailed, educational feedback
+    const intelligentFeedback = `There was an issue with the ${section.name} pattern. Let me help you understand and fix it:
+
+ORIGINAL PATTERN:
+${originalPattern}
+
+ERROR DETAILS:
+${errorAnalysis.description}
+
+SPECIFIC PROBLEM:
+${errorAnalysis.specificIssue}
+
+COMMON CAUSES:
+${errorAnalysis.commonCauses.map(cause => `• ${cause}`).join('\n')}
+
+SUGGESTED FIXES:
+${errorAnalysis.suggestedFixes.map(fix => `• ${fix}`).join('\n')}
+
+EXAMPLES OF CORRECT SYNTAX:
+${errorAnalysis.examples.map(ex => `• ${ex.description}: ${ex.code}`).join('\n')}
+
+Please provide a corrected version of the pattern that addresses these specific issues. 
+Remember: ${errorAnalysis.keyReminder}`;
+
+    this.conversation.push({ role: 'user', content: intelligentFeedback });
+    
+    // Try up to 3 times with increasingly specific feedback
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      console.log(chalk.cyan(`🔄 Error correction attempt ${attempt}/3`));
+      
+      const correctionResponse = await this.llmProvider.generateCompletion(this.conversation);
+      this.conversation.push({ role: 'assistant', content: correctionResponse });
+      
+      const correctedPattern = await this.extractPattern(correctionResponse);
+      
+      try {
+        // Test the corrected pattern
+        await this.testPattern(correctedPattern, `${section.name}-fix-${attempt}`);
+        console.log(chalk.green(`✅ Pattern fixed on attempt ${attempt}`));
+        return correctedPattern;
+        
+      } catch (retryError) {
+        console.log(chalk.yellow(`❌ Attempt ${attempt} failed: ${retryError.message}`));
+        
+        if (attempt < 3) {
+          // Provide more specific feedback for next attempt
+          const refinedFeedback = this.generateRefinedErrorFeedback(retryError, correctedPattern, attempt);
+          this.conversation.push({ role: 'user', content: refinedFeedback });
+        } else {
+          // Final attempt failed - fall back to a simple working pattern
+          console.log(chalk.red('🚨 All correction attempts failed. Using fallback pattern.'));
+          return this.generateFallbackPattern(section);
+        }
+      }
+    }
+  }
+  
+  /**
+   * Analyze error type and provide structured information
+   */
+  analyzeError(error, pattern) {
+    const errorMessage = error.message.toLowerCase();
+    
+    // Parse console errors if available
+    const consoleErrors = error.consoleErrors || [];
+    const strudelErrors = consoleErrors.filter(err => 
+      err.includes('[cyclist] error:') || err.includes('[eval] error:')
+    );
+    
+    if (strudelErrors.length > 0) {
+      const mainError = strudelErrors[0];
+      
+      // Syntax errors
+      if (mainError.includes('unexpected') || mainError.includes('parse error')) {
+        return {
+          description: 'Syntax Error - The pattern has invalid Strudel syntax',
+          specificIssue: mainError.replace('%c[cyclist] error: ', '').replace(' background-color: black;color:white;border-radius:15px', ''),
+          commonCauses: [
+            'Missing or extra parentheses/brackets',
+            'Incorrect function names or syntax',
+            'Invalid characters or formatting',
+            'Missing commas between parameters'
+          ],
+          suggestedFixes: [
+            'Check parentheses and bracket matching',
+            'Verify all function names are spelled correctly',
+            'Ensure proper comma placement',
+            'Use only valid Strudel syntax'
+          ],
+          examples: [
+            { description: 'Correct stack syntax', code: 'stack(sound("bd*4"), sound("hh*8"))' },
+            { description: 'Correct sequence', code: 'seq("bd", "sd", "hh", "sd")' },
+            { description: 'Correct note syntax', code: 'note("c3 e3 g3").sound("piano")' }
+          ],
+          keyReminder: 'Strudel patterns must be valid JavaScript expressions using Strudel functions'
+        };
+      }
+      
+      // Sound loading errors
+      if (mainError.includes('sound') && mainError.includes('not found')) {
+        const soundName = mainError.match(/sound "([^"]+)"/)?.[1] || 'unknown';
+        return {
+          description: 'Sound Loading Error - A sound sample could not be found',
+          specificIssue: `The sound "${soundName}" is not available`,
+          commonCauses: [
+            'Sound name doesn\'t exist in the sample library',
+            'Typo in sound name',
+            'Using bank notation that isn\'t loaded',
+            'Sound not yet loaded when pattern starts'
+          ],
+          suggestedFixes: [
+            'Use basic drum sounds: bd, sd, hh, oh, cp, perc',
+            'Avoid bank notation like "bd:3" - use just "bd"',
+            'Check sound name spelling',
+            'Use only common, reliable sample names'
+          ],
+          examples: [
+            { description: 'Safe drum sounds', code: 'sound("bd sd hh oh")' },
+            { description: 'Basic percussion', code: 'sound("perc*4")' },
+            { description: 'Simple hi-hats', code: 'sound("hh*8")' }
+          ],
+          keyReminder: 'Stick to basic, common sound names without bank specifications'
+        };
+      }
+      
+      // Type errors (hap.value issues)
+      if (mainError.includes('expected hap.value to be an object')) {
+        return {
+          description: 'Type Error - Pattern value is not in expected format',
+          specificIssue: 'Values need to be processed through .sound(), .note(), or .s() functions',
+          commonCauses: [
+            'Missing .sound() after string patterns',
+            'Missing .note() for note patterns', 
+            'Incorrect value types passed to functions',
+            'Raw strings without proper conversion'
+          ],
+          suggestedFixes: [
+            'Add .sound() after drum patterns: "bd sd".sound()',
+            'Add .note() after note patterns: "c3 e3".note()',
+            'Use sound() function: sound("bd sd")',
+            'Use note() function: note("c3 e3")'
+          ],
+          examples: [
+            { description: 'Correct sound usage', code: 'sound("bd sd hh oh")' },
+            { description: 'Correct note usage', code: 'note("c3 e3 g3 c4")' },
+            { description: 'Pattern with .sound()', code: '"bd*4".sound()' }
+          ],
+          keyReminder: 'Always use proper Strudel functions like sound() and note() to convert strings'
+        };
+      }
+    }
+    
+    // Generic error fallback
+    return {
+      description: 'Pattern Error - There\'s an issue with the pattern',
+      specificIssue: error.message,
+      commonCauses: [
+        'Syntax error in the pattern',
+        'Invalid function usage',
+        'Missing required parameters',
+        'Incorrect pattern structure'
+      ],
+      suggestedFixes: [
+        'Check the pattern syntax carefully',
+        'Verify all function calls are correct',
+        'Ensure proper use of Strudel functions',
+        'Test with simpler patterns first'
+      ],
+      examples: [
+        { description: 'Simple drum pattern', code: 'sound("bd*4")' },
+        { description: 'Basic stack', code: 'stack(sound("bd*4"), sound("hh*8"))' },
+        { description: 'Note sequence', code: 'note("c3 d3 e3 f3")' }
+      ],
+      keyReminder: 'Keep patterns simple and use only well-tested Strudel syntax'
+    };
+  }
+  
+  /**
+   * Generate more specific feedback for subsequent attempts
+   */
+  generateRefinedErrorFeedback(error, pattern, attemptNumber) {
+    const errorAnalysis = this.analyzeError(error, pattern);
+    
+    return `The correction attempt ${attemptNumber} still has issues. Let's be more specific:
+
+CURRENT ATTEMPT:
+${pattern}
+
+NEW ERROR:
+${errorAnalysis.specificIssue}
+
+This suggests the problem is: ${errorAnalysis.description}
+
+For attempt ${attemptNumber + 1}, please:
+1. Start with the simplest possible version that works
+2. ${errorAnalysis.suggestedFixes[0]}
+3. Test each function call individually
+4. ${attemptNumber === 2 ? 'Focus on basic, proven patterns only' : 'Double-check syntax carefully'}
+
+Example of what definitely works:
+${errorAnalysis.examples[0].code}`;
+  }
+  
+  /**
+   * Generate a simple fallback pattern when all else fails
+   */
+  generateFallbackPattern(section) {
+    const fallbackPatterns = {
+      intro: 'sound("bd ~ ~ ~").slow(2)',
+      verse: 'stack(sound("bd ~ sd ~"), sound("hh*4").gain(0.5))',
+      chorus: 'stack(sound("bd*2 sd*2"), sound("hh*8").gain(0.6))',
+      bridge: 'sound("bd ~ ~ sd").slow(2).gain(0.7)',
+      outro: 'sound("bd ~ ~ ~").slow(4).gain(0.5)'
+    };
+    
+    const fallback = fallbackPatterns[section.name.toLowerCase().replace(/[0-9]/g, '')] || 'sound("bd ~ sd ~")';
+    console.log(chalk.blue(`🔧 Using fallback pattern: ${fallback}`));
+    return fallback;
   }
   
   /**
