@@ -1,0 +1,3950 @@
+[
+  {
+    "id": 0,
+    "source": "strudel-songs/ameliewaltz.js",
+    "name": "ameliewaltz",
+    "type": "chords",
+    "tempo": 64,
+    "key": "a4:minor",
+    "style": "waltz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "waltz",
+      "chords",
+      "chords",
+      "ameliewaltz"
+    ]
+  },
+  {
+    "id": 1,
+    "source": "strudel-songs/anniesroom.js",
+    "name": "anniesroom",
+    "type": "full",
+    "tempo": 90,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "chords",
+      "anniesroom"
+    ]
+  },
+  {
+    "id": 2,
+    "source": "strudel-songs/anothersatellite.js",
+    "name": "anothersatellite",
+    "type": "full",
+    "tempo": 119,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "anothersatellite"
+    ]
+  },
+  {
+    "id": 3,
+    "source": "strudel-songs/appealingtovenus.js",
+    "name": "appealingtovenus",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "appealingtovenus"
+    ]
+  },
+  {
+    "id": 4,
+    "source": "strudel-songs/aztecchallenge.js",
+    "name": "aztecchallenge",
+    "type": "full",
+    "tempo": 180,
+    "key": "a1:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "aztecchallenge"
+    ]
+  },
+  {
+    "id": 5,
+    "source": "strudel-songs/bigship.js",
+    "name": "bigship",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "bigship"
+    ]
+  },
+  {
+    "id": 6,
+    "source": "strudel-songs/bluemonday.js",
+    "name": "bluemonday",
+    "type": "full",
+    "tempo": 130,
+    "key": "d2:minor",
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "bluemonday"
+    ]
+  },
+  {
+    "id": 7,
+    "source": "strudel-songs/breakfastline.js",
+    "name": "breakfastline",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "breakfastline"
+    ]
+  },
+  {
+    "id": 8,
+    "source": "strudel-songs/budsandspawn.js",
+    "name": "budsandspawn",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "budsandspawn"
+    ]
+  },
+  {
+    "id": 9,
+    "source": "strudel-songs/bugfromheaven.js",
+    "name": "bugfromheaven",
+    "type": "full",
+    "tempo": 108,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "bugfromheaven"
+    ]
+  },
+  {
+    "id": 10,
+    "source": "strudel-songs/byebyespirit.js",
+    "name": "byebyespirit",
+    "type": "full",
+    "tempo": 140,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "byebyespirit"
+    ]
+  },
+  {
+    "id": 11,
+    "source": "strudel-songs/cabinet.js",
+    "name": "cabinet",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "atmosphere",
+      "cabinet"
+    ]
+  },
+  {
+    "id": 12,
+    "source": "strudel-songs/cadenza.js",
+    "name": "cadenza",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-sine"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "atmosphere",
+      "cadenza"
+    ]
+  },
+  {
+    "id": 13,
+    "source": "strudel-songs/changetempowitharrows.js",
+    "name": "changetempowitharrows",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "changetempowitharrows"
+    ]
+  },
+  {
+    "id": 14,
+    "source": "strudel-songs/cinghiale.js",
+    "name": "cinghiale",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "cinghiale"
+    ]
+  },
+  {
+    "id": 15,
+    "source": "strudel-songs/clandeisiciliani.js",
+    "name": "clandeisiciliani",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "bass",
+      "chords",
+      "clandeisiciliani"
+    ]
+  },
+  {
+    "id": 16,
+    "source": "strudel-songs/clubbed.js",
+    "name": "clubbed",
+    "type": "full",
+    "tempo": 162,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "clubbed"
+    ]
+  },
+  {
+    "id": 17,
+    "source": "strudel-songs/disto.js",
+    "name": "disto",
+    "type": "full",
+    "tempo": 90,
+    "key": "c#2:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "disto"
+    ]
+  },
+  {
+    "id": 18,
+    "source": "strudel-songs/edenontheair.js",
+    "name": "edenontheair",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "jazz",
+      "full",
+      "chords",
+      "atmosphere",
+      "edenontheair"
+    ]
+  },
+  {
+    "id": 19,
+    "source": "strudel-songs/elpueblo.js",
+    "name": "elpueblo",
+    "type": "chords",
+    "tempo": 120,
+    "key": "a5:minor",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "elpueblo"
+    ]
+  },
+  {
+    "id": 20,
+    "source": "strudel-songs/enjoythesilence.js",
+    "name": "enjoythesilence",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "enjoythesilence"
+    ]
+  },
+  {
+    "id": 21,
+    "source": "strudel-songs/epicbiopic.js",
+    "name": "epicbiopic",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "epicbiopic"
+    ]
+  },
+  {
+    "id": 22,
+    "source": "strudel-songs/eversoclosely.js",
+    "name": "eversoclosely",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "chords",
+      "eversoclosely"
+    ]
+  },
+  {
+    "id": 23,
+    "source": "strudel-songs/happybirthday.js",
+    "name": "happybirthday",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "happybirthday"
+    ]
+  },
+  {
+    "id": 24,
+    "source": "strudel-songs/happybirthdayramones.js",
+    "name": "happybirthdayramones",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "happybirthdayramones"
+    ]
+  },
+  {
+    "id": 25,
+    "source": "strudel-songs/heymoon.js",
+    "name": "heymoon",
+    "type": "full",
+    "tempo": 88,
+    "key": "g4:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "heymoon"
+    ]
+  },
+  {
+    "id": 26,
+    "source": "strudel-songs/hydraswap.js",
+    "name": "hydraswap",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-sine"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "lead",
+      "chords",
+      "hydraswap"
+    ]
+  },
+  {
+    "id": 27,
+    "source": "strudel-songs/ilredelmondo.js",
+    "name": "ilredelmondo",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "ilredelmondo"
+    ]
+  },
+  {
+    "id": 28,
+    "source": "strudel-songs/jitterbug.js",
+    "name": "jitterbug",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "jitterbug"
+    ]
+  },
+  {
+    "id": 29,
+    "source": "strudel-songs/jitterbugreverse.js",
+    "name": "jitterbugreverse",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "rock",
+    "complexity": "medium",
+    "section": "verse",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "rock",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "jitterbugreverse"
+    ]
+  },
+  {
+    "id": 30,
+    "source": "strudel-songs/lovegoeson.js",
+    "name": "lovegoeson",
+    "type": "chords",
+    "tempo": 150,
+    "key": "a3:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "lovegoeson"
+    ]
+  },
+  {
+    "id": 31,
+    "source": "strudel-songs/madeallup.js",
+    "name": "madeallup",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "madeallup"
+    ]
+  },
+  {
+    "id": 32,
+    "source": "strudel-songs/mammalschilling.js",
+    "name": "mammalschilling",
+    "type": "full",
+    "tempo": 120,
+    "key": "f4:major",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "chords",
+      "mammalschilling"
+    ]
+  },
+  {
+    "id": 33,
+    "source": "strudel-songs/mouthbreather.js",
+    "name": "mouthbreather",
+    "type": "full",
+    "tempo": 215,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "mouthbreather"
+    ]
+  },
+  {
+    "id": 34,
+    "source": "strudel-songs/mouthbreathercomplex.js",
+    "name": "mouthbreathercomplex",
+    "type": "full",
+    "tempo": 215,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "mouthbreathercomplex"
+    ]
+  },
+  {
+    "id": 35,
+    "source": "strudel-songs/nudelimprov1.js",
+    "name": "nudelimprov1",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "nudelimprov1"
+    ]
+  },
+  {
+    "id": 36,
+    "source": "strudel-songs/oddeven.js",
+    "name": "oddeven",
+    "type": "chords",
+    "tempo": 120,
+    "key": "g2:lydian",
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "oddeven"
+    ]
+  },
+  {
+    "id": 37,
+    "source": "strudel-songs/oh.js",
+    "name": "oh",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "oh"
+    ]
+  },
+  {
+    "id": 38,
+    "source": "strudel-songs/oldmacdonald.js",
+    "name": "oldmacdonald",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "oldmacdonald"
+    ]
+  },
+  {
+    "id": 39,
+    "source": "strudel-songs/omalley.js",
+    "name": "omalley",
+    "type": "full",
+    "tempo": 120,
+    "key": "g3:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "omalley"
+    ]
+  },
+  {
+    "id": 40,
+    "source": "strudel-songs/pumpupthejam.js",
+    "name": "pumpupthejam",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "techno",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square",
+      "fm-synth"
+    ],
+    "tags": [
+      "techno",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "pumpupthejam"
+    ]
+  },
+  {
+    "id": 41,
+    "source": "strudel-songs/pyramidsong.js",
+    "name": "pyramidsong",
+    "type": "full",
+    "tempo": 104,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "pyramidsong"
+    ]
+  },
+  {
+    "id": 42,
+    "source": "strudel-songs/rhythmofthenight.js",
+    "name": "rhythmofthenight",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "rhythmofthenight"
+    ]
+  },
+  {
+    "id": 43,
+    "source": "strudel-songs/shanghai.js",
+    "name": "shanghai",
+    "type": "full",
+    "tempo": 81,
+    "key": "ab4:major",
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "shanghai"
+    ]
+  },
+  {
+    "id": 44,
+    "source": "strudel-songs/sparky.js",
+    "name": "sparky",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "sparky"
+    ]
+  },
+  {
+    "id": 45,
+    "source": "strudel-songs/stacktricks.js",
+    "name": "stacktricks",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "stacktricks"
+    ]
+  },
+  {
+    "id": 46,
+    "source": "strudel-songs/strangerthings.js",
+    "name": "strangerthings",
+    "type": "full",
+    "tempo": 120,
+    "key": "<c3:major>/2",
+    "style": "synthwave",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "synthwave",
+      "full",
+      "strangerthings"
+    ]
+  },
+  {
+    "id": 47,
+    "source": "strudel-songs/strudelman.js",
+    "name": "strudelman",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "strudelman"
+    ]
+  },
+  {
+    "id": 48,
+    "source": "strudel-songs/strudelwall.js",
+    "name": "strudelwall",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "strudelwall"
+    ]
+  },
+  {
+    "id": 49,
+    "source": "strudel-songs/strumtest1.js",
+    "name": "strumtest1",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "strumtest1"
+    ]
+  },
+  {
+    "id": 50,
+    "source": "strudel-songs/strumtest2.js",
+    "name": "strumtest2",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "strumtest2"
+    ]
+  },
+  {
+    "id": 51,
+    "source": "strudel-songs/strumtest3.js",
+    "name": "strumtest3",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "strumtest3"
+    ]
+  },
+  {
+    "id": 52,
+    "source": "strudel-songs/swimandsleep.js",
+    "name": "swimandsleep",
+    "type": "full",
+    "tempo": 120,
+    "key": "e:major",
+    "style": "jazz",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "jazz",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "atmosphere",
+      "swimandsleep"
+    ]
+  },
+  {
+    "id": 53,
+    "source": "strudel-songs/swimmingsnake.js",
+    "name": "swimmingsnake",
+    "type": "full",
+    "tempo": 120,
+    "key": "c#:minor",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "bass",
+      "chords",
+      "atmosphere",
+      "swimmingsnake"
+    ]
+  },
+  {
+    "id": 54,
+    "source": "strudel-songs/tablaturetest.js",
+    "name": "tablaturetest",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "tablaturetest"
+    ]
+  },
+  {
+    "id": 55,
+    "source": "strudel-songs/tarantella.js",
+    "name": "tarantella",
+    "type": "bass",
+    "tempo": 140,
+    "key": "a:minor",
+    "style": "latin",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "latin",
+      "bass",
+      "bass",
+      "tarantella"
+    ]
+  },
+  {
+    "id": 56,
+    "source": "strudel-songs/ventocaldo.js",
+    "name": "ventocaldo",
+    "type": "full",
+    "tempo": 120,
+    "key": "c#4:major",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "chords",
+      "ventocaldo"
+    ]
+  },
+  {
+    "id": 57,
+    "source": "strudel-songs/veronicainecstasy.js",
+    "name": "veronicainecstasy",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "chords",
+      "atmosphere",
+      "veronicainecstasy"
+    ]
+  },
+  {
+    "id": 58,
+    "source": "strudel-songs/veronicazigzag.js",
+    "name": "veronicazigzag",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "chords",
+      "atmosphere",
+      "veronicazigzag"
+    ]
+  },
+  {
+    "id": 59,
+    "source": "strudel-songs/waltzno2.js",
+    "name": "waltzno2",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "waltz",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-sine"
+    ],
+    "tags": [
+      "waltz",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "waltzno2"
+    ]
+  },
+  {
+    "id": 60,
+    "source": "strudel-songs/ameliewaltz.js",
+    "name": "ameliewaltz",
+    "type": "chords",
+    "tempo": 64,
+    "key": "a4:minor",
+    "style": "waltz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "waltz",
+      "chords",
+      "chords",
+      "ameliewaltz"
+    ]
+  },
+  {
+    "id": 61,
+    "source": "strudel-songs/anniesroom.js",
+    "name": "anniesroom",
+    "type": "full",
+    "tempo": 90,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "chords",
+      "anniesroom"
+    ]
+  },
+  {
+    "id": 62,
+    "source": "strudel-songs/anothersatellite.js",
+    "name": "anothersatellite",
+    "type": "full",
+    "tempo": 119,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "anothersatellite"
+    ]
+  },
+  {
+    "id": 63,
+    "source": "strudel-songs/appealingtovenus.js",
+    "name": "appealingtovenus",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "appealingtovenus"
+    ]
+  },
+  {
+    "id": 64,
+    "source": "strudel-songs/aztecchallenge.js",
+    "name": "aztecchallenge",
+    "type": "full",
+    "tempo": 180,
+    "key": "a1:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "aztecchallenge"
+    ]
+  },
+  {
+    "id": 65,
+    "source": "strudel-songs/bigship.js",
+    "name": "bigship",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "bigship"
+    ]
+  },
+  {
+    "id": 66,
+    "source": "strudel-songs/bluemonday.js",
+    "name": "bluemonday",
+    "type": "full",
+    "tempo": 130,
+    "key": "d2:minor",
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "bluemonday"
+    ]
+  },
+  {
+    "id": 67,
+    "source": "strudel-songs/breakfastline.js",
+    "name": "breakfastline",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "breakfastline"
+    ]
+  },
+  {
+    "id": 68,
+    "source": "strudel-songs/budsandspawn.js",
+    "name": "budsandspawn",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "budsandspawn"
+    ]
+  },
+  {
+    "id": 69,
+    "source": "strudel-songs/bugfromheaven.js",
+    "name": "bugfromheaven",
+    "type": "full",
+    "tempo": 108,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "bugfromheaven"
+    ]
+  },
+  {
+    "id": 70,
+    "source": "strudel-songs/byebyespirit.js",
+    "name": "byebyespirit",
+    "type": "full",
+    "tempo": 140,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "byebyespirit"
+    ]
+  },
+  {
+    "id": 71,
+    "source": "strudel-songs/cabinet.js",
+    "name": "cabinet",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "atmosphere",
+      "cabinet"
+    ]
+  },
+  {
+    "id": 72,
+    "source": "strudel-songs/cadenza.js",
+    "name": "cadenza",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-sine"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "atmosphere",
+      "cadenza"
+    ]
+  },
+  {
+    "id": 73,
+    "source": "strudel-songs/changetempowitharrows.js",
+    "name": "changetempowitharrows",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "changetempowitharrows"
+    ]
+  },
+  {
+    "id": 74,
+    "source": "strudel-songs/cinghiale.js",
+    "name": "cinghiale",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "cinghiale"
+    ]
+  },
+  {
+    "id": 75,
+    "source": "strudel-songs/clandeisiciliani.js",
+    "name": "clandeisiciliani",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "bass",
+      "chords",
+      "clandeisiciliani"
+    ]
+  },
+  {
+    "id": 76,
+    "source": "strudel-songs/clubbed.js",
+    "name": "clubbed",
+    "type": "full",
+    "tempo": 162,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "clubbed"
+    ]
+  },
+  {
+    "id": 77,
+    "source": "strudel-songs/disto.js",
+    "name": "disto",
+    "type": "full",
+    "tempo": 90,
+    "key": "c#2:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "disto"
+    ]
+  },
+  {
+    "id": 78,
+    "source": "strudel-songs/edenontheair.js",
+    "name": "edenontheair",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "jazz",
+      "full",
+      "chords",
+      "atmosphere",
+      "edenontheair"
+    ]
+  },
+  {
+    "id": 79,
+    "source": "strudel-songs/elpueblo.js",
+    "name": "elpueblo",
+    "type": "chords",
+    "tempo": 120,
+    "key": "a5:minor",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "elpueblo"
+    ]
+  },
+  {
+    "id": 80,
+    "source": "strudel-songs/enjoythesilence.js",
+    "name": "enjoythesilence",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "enjoythesilence"
+    ]
+  },
+  {
+    "id": 81,
+    "source": "strudel-songs/epicbiopic.js",
+    "name": "epicbiopic",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "epicbiopic"
+    ]
+  },
+  {
+    "id": 82,
+    "source": "strudel-songs/eversoclosely.js",
+    "name": "eversoclosely",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "chords",
+      "eversoclosely"
+    ]
+  },
+  {
+    "id": 83,
+    "source": "strudel-songs/happybirthday.js",
+    "name": "happybirthday",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "happybirthday"
+    ]
+  },
+  {
+    "id": 84,
+    "source": "strudel-songs/happybirthdayramones.js",
+    "name": "happybirthdayramones",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "happybirthdayramones"
+    ]
+  },
+  {
+    "id": 85,
+    "source": "strudel-songs/heymoon.js",
+    "name": "heymoon",
+    "type": "full",
+    "tempo": 88,
+    "key": "g4:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "heymoon"
+    ]
+  },
+  {
+    "id": 86,
+    "source": "strudel-songs/hydraswap.js",
+    "name": "hydraswap",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-sine"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "lead",
+      "chords",
+      "hydraswap"
+    ]
+  },
+  {
+    "id": 87,
+    "source": "strudel-songs/ilredelmondo.js",
+    "name": "ilredelmondo",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "ilredelmondo"
+    ]
+  },
+  {
+    "id": 88,
+    "source": "strudel-songs/jitterbug.js",
+    "name": "jitterbug",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "jitterbug"
+    ]
+  },
+  {
+    "id": 89,
+    "source": "strudel-songs/jitterbugreverse.js",
+    "name": "jitterbugreverse",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "rock",
+    "complexity": "medium",
+    "section": "verse",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "rock",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "jitterbugreverse"
+    ]
+  },
+  {
+    "id": 90,
+    "source": "strudel-songs/lovegoeson.js",
+    "name": "lovegoeson",
+    "type": "chords",
+    "tempo": 150,
+    "key": "a3:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "lovegoeson"
+    ]
+  },
+  {
+    "id": 91,
+    "source": "strudel-songs/madeallup.js",
+    "name": "madeallup",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "madeallup"
+    ]
+  },
+  {
+    "id": 92,
+    "source": "strudel-songs/mammalschilling.js",
+    "name": "mammalschilling",
+    "type": "full",
+    "tempo": 120,
+    "key": "f4:major",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "chords",
+      "mammalschilling"
+    ]
+  },
+  {
+    "id": 93,
+    "source": "strudel-songs/mouthbreather.js",
+    "name": "mouthbreather",
+    "type": "full",
+    "tempo": 215,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "mouthbreather"
+    ]
+  },
+  {
+    "id": 94,
+    "source": "strudel-songs/mouthbreathercomplex.js",
+    "name": "mouthbreathercomplex",
+    "type": "full",
+    "tempo": 215,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "mouthbreathercomplex"
+    ]
+  },
+  {
+    "id": 95,
+    "source": "strudel-songs/nudelimprov1.js",
+    "name": "nudelimprov1",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "nudelimprov1"
+    ]
+  },
+  {
+    "id": 96,
+    "source": "strudel-songs/oddeven.js",
+    "name": "oddeven",
+    "type": "chords",
+    "tempo": 120,
+    "key": "g2:lydian",
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "oddeven"
+    ]
+  },
+  {
+    "id": 97,
+    "source": "strudel-songs/oh.js",
+    "name": "oh",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "oh"
+    ]
+  },
+  {
+    "id": 98,
+    "source": "strudel-songs/oldmacdonald.js",
+    "name": "oldmacdonald",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "oldmacdonald"
+    ]
+  },
+  {
+    "id": 99,
+    "source": "strudel-songs/omalley.js",
+    "name": "omalley",
+    "type": "full",
+    "tempo": 120,
+    "key": "g3:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "omalley"
+    ]
+  },
+  {
+    "id": 100,
+    "source": "strudel-songs/pumpupthejam.js",
+    "name": "pumpupthejam",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "techno",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square",
+      "fm-synth"
+    ],
+    "tags": [
+      "techno",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "pumpupthejam"
+    ]
+  },
+  {
+    "id": 101,
+    "source": "strudel-songs/pyramidsong.js",
+    "name": "pyramidsong",
+    "type": "full",
+    "tempo": 104,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "pyramidsong"
+    ]
+  },
+  {
+    "id": 102,
+    "source": "strudel-songs/rhythmofthenight.js",
+    "name": "rhythmofthenight",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "rhythmofthenight"
+    ]
+  },
+  {
+    "id": 103,
+    "source": "strudel-songs/shanghai.js",
+    "name": "shanghai",
+    "type": "full",
+    "tempo": 81,
+    "key": "ab4:major",
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "shanghai"
+    ]
+  },
+  {
+    "id": 104,
+    "source": "strudel-songs/sparky.js",
+    "name": "sparky",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "sparky"
+    ]
+  },
+  {
+    "id": 105,
+    "source": "strudel-songs/stacktricks.js",
+    "name": "stacktricks",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "stacktricks"
+    ]
+  },
+  {
+    "id": 106,
+    "source": "strudel-songs/strangerthings.js",
+    "name": "strangerthings",
+    "type": "full",
+    "tempo": 120,
+    "key": "<c3:major>/2",
+    "style": "synthwave",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "synthwave",
+      "full",
+      "strangerthings"
+    ]
+  },
+  {
+    "id": 107,
+    "source": "strudel-songs/strudelman.js",
+    "name": "strudelman",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "strudelman"
+    ]
+  },
+  {
+    "id": 108,
+    "source": "strudel-songs/strudelwall.js",
+    "name": "strudelwall",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "strudelwall"
+    ]
+  },
+  {
+    "id": 109,
+    "source": "strudel-songs/strumtest1.js",
+    "name": "strumtest1",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "strumtest1"
+    ]
+  },
+  {
+    "id": 110,
+    "source": "strudel-songs/strumtest2.js",
+    "name": "strumtest2",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "strumtest2"
+    ]
+  },
+  {
+    "id": 111,
+    "source": "strudel-songs/strumtest3.js",
+    "name": "strumtest3",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "strumtest3"
+    ]
+  },
+  {
+    "id": 112,
+    "source": "strudel-songs/swimandsleep.js",
+    "name": "swimandsleep",
+    "type": "full",
+    "tempo": 120,
+    "key": "e:major",
+    "style": "jazz",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "jazz",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "atmosphere",
+      "swimandsleep"
+    ]
+  },
+  {
+    "id": 113,
+    "source": "strudel-songs/swimmingsnake.js",
+    "name": "swimmingsnake",
+    "type": "full",
+    "tempo": 120,
+    "key": "c#:minor",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "bass",
+      "chords",
+      "atmosphere",
+      "swimmingsnake"
+    ]
+  },
+  {
+    "id": 114,
+    "source": "strudel-songs/tablaturetest.js",
+    "name": "tablaturetest",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "tablaturetest"
+    ]
+  },
+  {
+    "id": 115,
+    "source": "strudel-songs/tarantella.js",
+    "name": "tarantella",
+    "type": "bass",
+    "tempo": 140,
+    "key": "a:minor",
+    "style": "latin",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "latin",
+      "bass",
+      "bass",
+      "tarantella"
+    ]
+  },
+  {
+    "id": 116,
+    "source": "strudel-songs/ventocaldo.js",
+    "name": "ventocaldo",
+    "type": "full",
+    "tempo": 120,
+    "key": "c#4:major",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "chords",
+      "ventocaldo"
+    ]
+  },
+  {
+    "id": 117,
+    "source": "strudel-songs/veronicainecstasy.js",
+    "name": "veronicainecstasy",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "chords",
+      "atmosphere",
+      "veronicainecstasy"
+    ]
+  },
+  {
+    "id": 118,
+    "source": "strudel-songs/veronicazigzag.js",
+    "name": "veronicazigzag",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "chords",
+      "atmosphere",
+      "veronicazigzag"
+    ]
+  },
+  {
+    "id": 119,
+    "source": "strudel-songs/waltzno2.js",
+    "name": "waltzno2",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "waltz",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-sine"
+    ],
+    "tags": [
+      "waltz",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "waltzno2"
+    ]
+  },
+  {
+    "id": 120,
+    "source": "strudel-songs/ameliewaltz.js",
+    "name": "ameliewaltz",
+    "type": "chords",
+    "tempo": 64,
+    "key": "a4:minor",
+    "style": "waltz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "waltz",
+      "chords",
+      "chords",
+      "ameliewaltz"
+    ]
+  },
+  {
+    "id": 121,
+    "source": "strudel-songs/anniesroom.js",
+    "name": "anniesroom",
+    "type": "full",
+    "tempo": 90,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "chords",
+      "anniesroom"
+    ]
+  },
+  {
+    "id": 122,
+    "source": "strudel-songs/anothersatellite.js",
+    "name": "anothersatellite",
+    "type": "full",
+    "tempo": 119,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "anothersatellite"
+    ]
+  },
+  {
+    "id": 123,
+    "source": "strudel-songs/appealingtovenus.js",
+    "name": "appealingtovenus",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "appealingtovenus"
+    ]
+  },
+  {
+    "id": 124,
+    "source": "strudel-songs/aztecchallenge.js",
+    "name": "aztecchallenge",
+    "type": "full",
+    "tempo": 180,
+    "key": "a1:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "aztecchallenge"
+    ]
+  },
+  {
+    "id": 125,
+    "source": "strudel-songs/bigship.js",
+    "name": "bigship",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "bigship"
+    ]
+  },
+  {
+    "id": 126,
+    "source": "strudel-songs/bluemonday.js",
+    "name": "bluemonday",
+    "type": "full",
+    "tempo": 130,
+    "key": "d2:minor",
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "bluemonday"
+    ]
+  },
+  {
+    "id": 127,
+    "source": "strudel-songs/breakfastline.js",
+    "name": "breakfastline",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "breakfastline"
+    ]
+  },
+  {
+    "id": 128,
+    "source": "strudel-songs/budsandspawn.js",
+    "name": "budsandspawn",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "budsandspawn"
+    ]
+  },
+  {
+    "id": 129,
+    "source": "strudel-songs/bugfromheaven.js",
+    "name": "bugfromheaven",
+    "type": "full",
+    "tempo": 108,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "bugfromheaven"
+    ]
+  },
+  {
+    "id": 130,
+    "source": "strudel-songs/byebyespirit.js",
+    "name": "byebyespirit",
+    "type": "full",
+    "tempo": 140,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "byebyespirit"
+    ]
+  },
+  {
+    "id": 131,
+    "source": "strudel-songs/cabinet.js",
+    "name": "cabinet",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "atmosphere",
+      "cabinet"
+    ]
+  },
+  {
+    "id": 132,
+    "source": "strudel-songs/cadenza.js",
+    "name": "cadenza",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-sine"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "atmosphere",
+      "cadenza"
+    ]
+  },
+  {
+    "id": 133,
+    "source": "strudel-songs/changetempowitharrows.js",
+    "name": "changetempowitharrows",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "changetempowitharrows"
+    ]
+  },
+  {
+    "id": 134,
+    "source": "strudel-songs/cinghiale.js",
+    "name": "cinghiale",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "cinghiale"
+    ]
+  },
+  {
+    "id": 135,
+    "source": "strudel-songs/clandeisiciliani.js",
+    "name": "clandeisiciliani",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "bass",
+      "chords",
+      "clandeisiciliani"
+    ]
+  },
+  {
+    "id": 136,
+    "source": "strudel-songs/clubbed.js",
+    "name": "clubbed",
+    "type": "full",
+    "tempo": 162,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "clubbed"
+    ]
+  },
+  {
+    "id": 137,
+    "source": "strudel-songs/disto.js",
+    "name": "disto",
+    "type": "full",
+    "tempo": 90,
+    "key": "c#2:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "disto"
+    ]
+  },
+  {
+    "id": 138,
+    "source": "strudel-songs/edenontheair.js",
+    "name": "edenontheair",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "jazz",
+      "full",
+      "chords",
+      "atmosphere",
+      "edenontheair"
+    ]
+  },
+  {
+    "id": 139,
+    "source": "strudel-songs/elpueblo.js",
+    "name": "elpueblo",
+    "type": "chords",
+    "tempo": 120,
+    "key": "a5:minor",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "elpueblo"
+    ]
+  },
+  {
+    "id": 140,
+    "source": "strudel-songs/enjoythesilence.js",
+    "name": "enjoythesilence",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "enjoythesilence"
+    ]
+  },
+  {
+    "id": 141,
+    "source": "strudel-songs/epicbiopic.js",
+    "name": "epicbiopic",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "chords",
+      "epicbiopic"
+    ]
+  },
+  {
+    "id": 142,
+    "source": "strudel-songs/eversoclosely.js",
+    "name": "eversoclosely",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "chords",
+      "eversoclosely"
+    ]
+  },
+  {
+    "id": 143,
+    "source": "strudel-songs/happybirthday.js",
+    "name": "happybirthday",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "happybirthday"
+    ]
+  },
+  {
+    "id": 144,
+    "source": "strudel-songs/happybirthdayramones.js",
+    "name": "happybirthdayramones",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "happybirthdayramones"
+    ]
+  },
+  {
+    "id": 145,
+    "source": "strudel-songs/heymoon.js",
+    "name": "heymoon",
+    "type": "full",
+    "tempo": 88,
+    "key": "g4:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "heymoon"
+    ]
+  },
+  {
+    "id": 146,
+    "source": "strudel-songs/hydraswap.js",
+    "name": "hydraswap",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-sine"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "lead",
+      "chords",
+      "hydraswap"
+    ]
+  },
+  {
+    "id": 147,
+    "source": "strudel-songs/ilredelmondo.js",
+    "name": "ilredelmondo",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "ilredelmondo"
+    ]
+  },
+  {
+    "id": 148,
+    "source": "strudel-songs/jitterbug.js",
+    "name": "jitterbug",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "jitterbug"
+    ]
+  },
+  {
+    "id": 149,
+    "source": "strudel-songs/jitterbugreverse.js",
+    "name": "jitterbugreverse",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "rock",
+    "complexity": "medium",
+    "section": "verse",
+    "instruments": [
+      "synth-saw",
+      "synth-square"
+    ],
+    "tags": [
+      "rock",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "jitterbugreverse"
+    ]
+  },
+  {
+    "id": 150,
+    "source": "strudel-songs/lovegoeson.js",
+    "name": "lovegoeson",
+    "type": "chords",
+    "tempo": 150,
+    "key": "a3:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "lovegoeson"
+    ]
+  },
+  {
+    "id": 151,
+    "source": "strudel-songs/madeallup.js",
+    "name": "madeallup",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "madeallup"
+    ]
+  },
+  {
+    "id": 152,
+    "source": "strudel-songs/mammalschilling.js",
+    "name": "mammalschilling",
+    "type": "full",
+    "tempo": 120,
+    "key": "f4:major",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "chords",
+      "mammalschilling"
+    ]
+  },
+  {
+    "id": 153,
+    "source": "strudel-songs/mouthbreather.js",
+    "name": "mouthbreather",
+    "type": "full",
+    "tempo": 215,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "mouthbreather"
+    ]
+  },
+  {
+    "id": 154,
+    "source": "strudel-songs/mouthbreathercomplex.js",
+    "name": "mouthbreathercomplex",
+    "type": "full",
+    "tempo": 215,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "mouthbreathercomplex"
+    ]
+  },
+  {
+    "id": 155,
+    "source": "strudel-songs/nudelimprov1.js",
+    "name": "nudelimprov1",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "chords",
+      "nudelimprov1"
+    ]
+  },
+  {
+    "id": 156,
+    "source": "strudel-songs/oddeven.js",
+    "name": "oddeven",
+    "type": "chords",
+    "tempo": 120,
+    "key": "g2:lydian",
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "oddeven"
+    ]
+  },
+  {
+    "id": 157,
+    "source": "strudel-songs/oh.js",
+    "name": "oh",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "atmosphere",
+      "oh"
+    ]
+  },
+  {
+    "id": 158,
+    "source": "strudel-songs/oldmacdonald.js",
+    "name": "oldmacdonald",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "oldmacdonald"
+    ]
+  },
+  {
+    "id": 159,
+    "source": "strudel-songs/omalley.js",
+    "name": "omalley",
+    "type": "full",
+    "tempo": 120,
+    "key": "g3:major",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-square"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "bass",
+      "chords",
+      "omalley"
+    ]
+  },
+  {
+    "id": 160,
+    "source": "strudel-songs/pumpupthejam.js",
+    "name": "pumpupthejam",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "techno",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square",
+      "fm-synth"
+    ],
+    "tags": [
+      "techno",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "pumpupthejam"
+    ]
+  },
+  {
+    "id": 161,
+    "source": "strudel-songs/pyramidsong.js",
+    "name": "pyramidsong",
+    "type": "full",
+    "tempo": 104,
+    "key": null,
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "pyramidsong"
+    ]
+  },
+  {
+    "id": 162,
+    "source": "strudel-songs/rhythmofthenight.js",
+    "name": "rhythmofthenight",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "synth-saw",
+      "synth-square",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "rhythmofthenight"
+    ]
+  },
+  {
+    "id": 163,
+    "source": "strudel-songs/shanghai.js",
+    "name": "shanghai",
+    "type": "full",
+    "tempo": 81,
+    "key": "ab4:major",
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "chords",
+      "shanghai"
+    ]
+  },
+  {
+    "id": 164,
+    "source": "strudel-songs/sparky.js",
+    "name": "sparky",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "sparky"
+    ]
+  },
+  {
+    "id": 165,
+    "source": "strudel-songs/stacktricks.js",
+    "name": "stacktricks",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "stacktricks"
+    ]
+  },
+  {
+    "id": 166,
+    "source": "strudel-songs/strangerthings.js",
+    "name": "strangerthings",
+    "type": "full",
+    "tempo": 120,
+    "key": "<c3:major>/2",
+    "style": "synthwave",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "synthwave",
+      "full",
+      "strangerthings"
+    ]
+  },
+  {
+    "id": 167,
+    "source": "strudel-songs/strudelman.js",
+    "name": "strudelman",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "general",
+      "chords",
+      "chords",
+      "strudelman"
+    ]
+  },
+  {
+    "id": 168,
+    "source": "strudel-songs/strudelwall.js",
+    "name": "strudelwall",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "strudelwall"
+    ]
+  },
+  {
+    "id": 169,
+    "source": "strudel-songs/strumtest1.js",
+    "name": "strumtest1",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "strumtest1"
+    ]
+  },
+  {
+    "id": 170,
+    "source": "strudel-songs/strumtest2.js",
+    "name": "strumtest2",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "strumtest2"
+    ]
+  },
+  {
+    "id": 171,
+    "source": "strudel-songs/strumtest3.js",
+    "name": "strumtest3",
+    "type": "chords",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "jazz",
+      "chords",
+      "chords",
+      "strumtest3"
+    ]
+  },
+  {
+    "id": 172,
+    "source": "strudel-songs/swimandsleep.js",
+    "name": "swimandsleep",
+    "type": "full",
+    "tempo": 120,
+    "key": "e:major",
+    "style": "jazz",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "jazz",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "chords",
+      "atmosphere",
+      "swimandsleep"
+    ]
+  },
+  {
+    "id": 173,
+    "source": "strudel-songs/swimmingsnake.js",
+    "name": "swimmingsnake",
+    "type": "full",
+    "tempo": 120,
+    "key": "c#:minor",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "bass",
+      "bass",
+      "chords",
+      "atmosphere",
+      "swimmingsnake"
+    ]
+  },
+  {
+    "id": 174,
+    "source": "strudel-songs/tablaturetest.js",
+    "name": "tablaturetest",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "jazz",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "fm-synth"
+    ],
+    "tags": [
+      "jazz",
+      "full",
+      "tablaturetest"
+    ]
+  },
+  {
+    "id": 175,
+    "source": "strudel-songs/tarantella.js",
+    "name": "tarantella",
+    "type": "bass",
+    "tempo": 140,
+    "key": "a:minor",
+    "style": "latin",
+    "complexity": "simple",
+    "section": "full",
+    "instruments": [],
+    "tags": [
+      "latin",
+      "bass",
+      "bass",
+      "tarantella"
+    ]
+  },
+  {
+    "id": 176,
+    "source": "strudel-songs/ventocaldo.js",
+    "name": "ventocaldo",
+    "type": "full",
+    "tempo": 120,
+    "key": "c#4:major",
+    "style": "general",
+    "complexity": "complex",
+    "section": "full",
+    "instruments": [
+      "synth-saw"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "drums",
+      "drums",
+      "drums",
+      "bass",
+      "bass",
+      "chords",
+      "ventocaldo"
+    ]
+  },
+  {
+    "id": 177,
+    "source": "strudel-songs/veronicainecstasy.js",
+    "name": "veronicainecstasy",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "chords",
+      "atmosphere",
+      "veronicainecstasy"
+    ]
+  },
+  {
+    "id": 178,
+    "source": "strudel-songs/veronicazigzag.js",
+    "name": "veronicazigzag",
+    "type": "full",
+    "tempo": 120,
+    "key": null,
+    "style": "general",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano"
+    ],
+    "tags": [
+      "general",
+      "full",
+      "chords",
+      "atmosphere",
+      "veronicazigzag"
+    ]
+  },
+  {
+    "id": 179,
+    "source": "strudel-songs/waltzno2.js",
+    "name": "waltzno2",
+    "type": "full",
+    "tempo": 120,
+    "key": "c4:minor",
+    "style": "waltz",
+    "complexity": "medium",
+    "section": "full",
+    "instruments": [
+      "piano",
+      "synth-sine"
+    ],
+    "tags": [
+      "waltz",
+      "full",
+      "bass",
+      "lead",
+      "chords",
+      "atmosphere",
+      "waltzno2"
+    ]
+  }
+]
