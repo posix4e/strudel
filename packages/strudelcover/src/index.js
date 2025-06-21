@@ -1,4 +1,4 @@
-import { AdvancedAudioAnalyzer } from './advanced-analyzer.js';
+// Audio analysis now happens in dashboard
 import { LLMProviderFactory } from './llm/index.js';
 import { DazzleDashboard } from './dazzle-dashboard.js';
 import { DazzleGenerator } from './dazzle-generator.js';
@@ -99,7 +99,6 @@ export class StrudelCover {
 }
 
 // Export everything
-export { AdvancedAudioAnalyzer } from './advanced-analyzer.js';
 export { LLMProviderFactory, BaseLLMProvider } from './llm/index.js';
 export { DazzleDashboard } from './dazzle-dashboard.js';
 export { DazzleGenerator } from './dazzle-generator.js';

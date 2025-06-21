@@ -54,6 +54,17 @@ export class DazzleDashboard {
         ws.on('close', () => {
           this.clients.delete(ws);
         });
+        
+        ws.on('message', (message) => {
+          try {
+            const data = JSON.parse(message);
+            if (data.type === 'audio_analyzed') {
+              this.setAnalysisData(data.data);
+            }
+          } catch (error) {
+            console.error('Error processing message:', error);
+          }
+        });
       });
 
       this.server.listen(port, () => {
@@ -73,6 +84,14 @@ export class DazzleDashboard {
     this.broadcast({
       type: 'update',
       data: updates
+    });
+  }
+  
+  setAnalysisData(data) {
+    this.state.analysisData = data;
+    this.broadcast({
+      type: 'analysis_complete',
+      data: data
     });
   }
 
@@ -551,6 +570,40 @@ export class DazzleDashboard {
       border-color: #0ff;
       box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
     }
+    
+    .audio-analysis-section {
+      margin-bottom: 20px;
+    }
+    
+    .audio-upload {
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .analysis-results {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 10px;
+      background: rgba(0, 255, 255, 0.05);
+      border: 1px solid #088;
+      margin: 10px;
+    }
+    
+    .analysis-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 10px;
+    }
+    
+    .analysis-item .label {
+      color: #ff0;
+      font-weight: bold;
+    }
+    
+    .analysis-item .value {
+      color: #0ff;
+    }
   </style>
 </head>
 <body>
@@ -560,6 +613,39 @@ export class DazzleDashboard {
     <div class="header">
       <h1>DAZZLE DASHBOARD</h1>
       <div class="status" id="status">Initializing...</div>
+    </div>
+    
+    <!-- Audio Analysis Section -->
+    <div class="audio-analysis-section" id="audio-analysis-section">
+      <div class="panel">
+        <div class="panel-header">AUDIO ANALYSIS</div>
+        <div class="audio-upload">
+          <input type="file" id="audio-file" accept="audio/*" style="display: none;">
+          <button class="viz-button" onclick="document.getElementById('audio-file').click()">
+            📁 Load Audio File
+          </button>
+          <span id="audio-filename" style="margin-left: 10px; color: #0ff;"></span>
+        </div>
+        <div class="analysis-results" id="analysis-results" style="display: none;">
+          <div class="analysis-item">
+            <span class="label">Tempo:</span>
+            <span class="value" id="tempo-value">--</span>
+          </div>
+          <div class="analysis-item">
+            <span class="label">Key:</span>
+            <span class="value" id="key-value">--</span>
+          </div>
+          <div class="analysis-item">
+            <span class="label">Energy:</span>
+            <span class="value" id="energy-value">--</span>
+          </div>
+          <div class="analysis-item">
+            <span class="label">Sections:</span>
+            <span class="value" id="sections-value">--</span>
+          </div>
+        </div>
+        <canvas id="waveform-display" width="800" height="100" style="width: 100%; display: none; margin-top: 10px; border: 1px solid #088;"></canvas>
+      </div>
     </div>
 
     <div class="main-content">
@@ -633,6 +719,10 @@ export class DazzleDashboard {
     <iframe class="strudel-iframe" id="strudel-iframe" src="about:blank"></iframe>
   </div>
 
+  <!-- Load Essentia.js -->
+  <script src="https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-model.umd.js"></script>
+  
   <script>
     // Create particles
     const particlesContainer = document.getElementById('particles');
@@ -643,6 +733,177 @@ export class DazzleDashboard {
       particle.style.animationDelay = Math.random() * 10 + 's';
       particle.style.animationDuration = (10 + Math.random() * 10) + 's';
       particlesContainer.appendChild(particle);
+    }
+    
+    // Initialize Essentia.js
+    let essentia = null;
+    let audioContext = null;
+    let analyzedData = null;
+    
+    async function initializeEssentia() {
+      try {
+        essentia = new EssentiaWASM.Essentia(EssentiaWASM.EssentiaWASM);
+        await essentia.init();
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('Essentia.js initialized');
+      } catch (error) {
+        console.error('Failed to initialize Essentia.js:', error);
+      }
+    }
+    
+    // Initialize on load
+    initializeEssentia();
+    
+    // Audio file handling
+    document.getElementById('audio-file').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      document.getElementById('audio-filename').textContent = file.name;
+      document.getElementById('status').textContent = 'Analyzing audio...';
+      
+      try {
+        // Read file as array buffer
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        
+        // Analyze audio
+        const analysis = await analyzeAudio(audioBuffer);
+        analyzedData = analysis;
+        
+        // Display results
+        displayAnalysisResults(analysis);
+        
+        // Send to server
+        ws.send(JSON.stringify({
+          type: 'audio_analyzed',
+          data: analysis
+        }));
+        
+        document.getElementById('status').textContent = 'Audio analyzed - Ready to generate';
+      } catch (error) {
+        console.error('Audio analysis failed:', error);
+        document.getElementById('status').textContent = 'Analysis failed: ' + error.message;
+      }
+    });
+    
+    async function analyzeAudio(audioBuffer) {
+      if (!essentia) {
+        throw new Error('Essentia.js not initialized');
+      }
+      
+      // Convert to mono
+      const channelData = audioBuffer.getChannelData(0);
+      const sampleRate = audioBuffer.sampleRate;
+      
+      // Basic feature extraction
+      const features = essentia.Extractor(channelData, {
+        sampleRate: sampleRate,
+        frameSize: 2048,
+        hopSize: 1024
+      });
+      
+      // Tempo estimation
+      const tempo = essentia.RhythmExtractor2013(channelData, {
+        sampleRate: sampleRate
+      });
+      
+      // Key detection
+      const key = essentia.KeyExtractor(channelData, {
+        sampleRate: sampleRate
+      });
+      
+      // Energy and spectral features
+      const spectralCentroid = essentia.SpectralCentroid(features.spectrogram);
+      const energy = essentia.Energy(channelData);
+      
+      // Section detection (simplified)
+      const sections = detectSections(channelData, sampleRate);
+      
+      // Draw waveform
+      drawWaveform(channelData);
+      
+      return {
+        tempo: Math.round(tempo.bpm),
+        key: key.key + ' ' + key.scale,
+        energy: energy.toFixed(2),
+        spectralCentroid: Math.round(spectralCentroid),
+        duration: audioBuffer.duration,
+        sampleRate: sampleRate,
+        sections: sections,
+        artist: document.getElementById('artist-input')?.value || 'Unknown',
+        song: document.getElementById('song-input')?.value || 'Unknown'
+      };
+    }
+    
+    function detectSections(audioData, sampleRate) {
+      // Simplified section detection based on energy changes
+      const sectionLength = Math.floor(sampleRate * 4); // 4 second windows
+      const sections = [];
+      let currentSection = 'intro';
+      
+      for (let i = 0; i < audioData.length; i += sectionLength) {
+        const chunk = audioData.slice(i, i + sectionLength);
+        const energy = chunk.reduce((sum, val) => sum + Math.abs(val), 0) / chunk.length;
+        
+        // Simple heuristic for section changes
+        if (i > sampleRate * 16 && energy > 0.1) {
+          currentSection = 'verse';
+        }
+        if (i > sampleRate * 48 && energy > 0.2) {
+          currentSection = 'chorus';
+        }
+        if (i > sampleRate * 96 && energy < 0.15) {
+          currentSection = 'bridge';
+        }
+        
+        sections.push({
+          start: i / sampleRate,
+          type: currentSection,
+          energy: energy
+        });
+      }
+      
+      return sections;
+    }
+    
+    function drawWaveform(audioData) {
+      const canvas = document.getElementById('waveform-display');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.style.display = 'block';
+      
+      // Clear canvas
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw waveform
+      const step = Math.floor(audioData.length / canvas.width);
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      
+      for (let i = 0; i < canvas.width; i++) {
+        const index = i * step;
+        const value = audioData[index];
+        const y = (1 + value) * canvas.height / 2;
+        
+        if (i === 0) {
+          ctx.moveTo(i, y);
+        } else {
+          ctx.lineTo(i, y);
+        }
+      }
+      
+      ctx.stroke();
+    }
+    
+    function displayAnalysisResults(analysis) {
+      document.getElementById('analysis-results').style.display = 'grid';
+      document.getElementById('tempo-value').textContent = analysis.tempo + ' BPM';
+      document.getElementById('key-value').textContent = analysis.key;
+      document.getElementById('energy-value').textContent = analysis.energy;
+      document.getElementById('sections-value').textContent = analysis.sections.length + ' detected';
     }
 
     // WebSocket connection

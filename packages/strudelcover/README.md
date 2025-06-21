@@ -9,10 +9,12 @@ Dazzle mode provides a real-time dashboard for watching AI-powered pattern gener
 ## Features
 
 - Real-time web dashboard (http://localhost:8888)
+- In-browser audio analysis with Essentia.js
 - Progressive pattern building (drums → bass → melody → etc.)
 - LLM conversation history
-- Audio visualization
-- Section-based song structure
+- Integrated Strudel.cc player
+- Dynamic song structure determined by AI
+- No server-side audio processing needed
 
 ## Installation
 
@@ -24,13 +26,15 @@ npm install
 
 ```bash
 # Basic usage
-npm run cover <audio-file> <artist> <song> -- --dazzle
+npm run cover "Artist" "Song Title" -- --dazzle
 
 # With specific API key
-npm run cover song.mp3 "Artist" "Song Title" -- --dazzle --api-key YOUR_API_KEY
+npm run cover "Artist" "Song Title" -- --dazzle --api-key YOUR_API_KEY
 
 # With different LLM provider
-npm run cover song.mp3 "Artist" "Song Title" -- --dazzle --llm anthropic
+npm run cover "Artist" "Song Title" -- --dazzle --llm anthropic
+
+# Then load your audio file in the dashboard at http://localhost:8888
 ```
 
 ## Requirements

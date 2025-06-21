@@ -26,14 +26,14 @@ program
 
 // Default cover generation command (Dazzle mode only)
 const coverCommand = program
-  .command('cover <input> <artist> <song>', { isDefault: true })
+  .command('cover <artist> <song>', { isDefault: true })
   .description('Generate a Strudel cover of a song using Dazzle mode')
   .option('-k, --api-key <key>', 'OpenAI API key (or set OPENAI_API_KEY env var)')
   .option('-o, --output <dir>', 'Output directory', './strudelcover-output')
   .option('--llm <provider>', 'LLM provider: openai, anthropic, ollama', 'openai')
   .option('--model <model>', 'LLM model to use')
   .option('--llm-base-url <url>', 'Custom LLM API endpoint')
-  .action(async (input, artist, song, options) => {
+  .action(async (artist, song, options) => {
     console.log(chalk.blue.bold('\n🎸 StrudelCover - AI Song Recreation\n'));
     
     const spinner = ora('Initializing...').start();
@@ -49,14 +49,8 @@ const coverCommand = program
         process.exit(1);
       }
       
-      // Input should be a local audio file
-      const audioPath = input;
-      if (!existsSync(audioPath)) {
-        spinner.fail(`File not found: ${audioPath}`);
-        process.exit(1);
-      }
-      
       spinner.succeed('Ready to create cover!');
+      console.log(chalk.yellow('\n📊 Please load your audio file in the dashboard to begin analysis'));
       
       // Create StrudelCover instance (always dazzle mode)
       const coverOptions = {
@@ -73,7 +67,7 @@ const coverCommand = program
       const cover = new StrudelCover(coverOptions);
       
       // Generate cover
-      const results = await cover.cover(audioPath, artist, song);
+      const results = await cover.cover(null, artist, song); // Audio loaded in dashboard
       
       // Success!
       console.log(chalk.green.bold('\n🎉 Cover generation complete!\n'));

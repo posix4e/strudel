@@ -2,10 +2,7 @@
 
 // Simple test to verify minimal dazzle mode setup
 
-import { StrudelCover } from './src/index.js';
-import { DazzleGenerator } from './src/dazzle-generator.js';
-import { DazzleDashboard } from './src/dazzle-dashboard.js';
-import { LLMProviderFactory } from './src/llm/index.js';
+import { StrudelCover, DazzleGenerator, DazzleDashboard, LLMProviderFactory } from './src/index.js';
 
 console.log('Testing minimal dazzle mode setup...\n');
 

@@ -12,7 +12,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import { existsSync } from 'fs';
-import { AdvancedAudioAnalyzer } from './advanced-analyzer.js';
+// Audio analysis now happens in the dashboard with Essentia.js
 
 export class DazzleGenerator {
   constructor(options = {}) {
@@ -21,7 +21,8 @@ export class DazzleGenerator {
     this.llmProvider = options.llmProvider || null;
     // this.validator = new PatternValidator();
     this.dashboard = options.dashboard || null;
-    this.analyzer = new AdvancedAudioAnalyzer();
+    // Analysis now happens in dashboard
+    this.analysisData = null;
     
     // Track conversation history
     this.conversation = [];
@@ -32,76 +33,24 @@ export class DazzleGenerator {
     // Track combined patterns for each section
     this.sectionPatterns = {};
     
-    // Section configurations
-    this.sections = {
-      intro: {
-        bars: 8,
-        layers: {},
-        combinedPattern: null,
-        instruments: {
-          buildOrder: ['atmosphere', 'drums', 'bass'],
-          mappings: {
-            atmosphere: { sounds: ['fm', 'sawtooth:0.3', 'sine:0.2'], style: 'ambient pad' },
-            drums: { sounds: ['bd', 'hh', 'sn'], style: 'minimal' },
-            bass: { sounds: ['fm:1', 'sawtooth:0.5'], style: 'sub bass' }
-          }
-        }
-      },
-      verse: {
-        bars: 16,
-        layers: {},
-        combinedPattern: null,
-        instruments: {
-          buildOrder: ['drums', 'bass', 'chords'],
-          mappings: {
-            drums: { sounds: ['bd', 'sn', 'hh', 'oh'], style: 'steady groove' },
-            bass: { sounds: ['fm:1', 'sawtooth:0.7'], style: 'melodic bassline' },
-            chords: { sounds: ['fm:3', 'sawtooth:0.4'], style: 'harmonic progression' }
-          }
-        }
-      },
-      chorus: {
-        bars: 16,
-        layers: {},
-        combinedPattern: null,
-        instruments: {
-          buildOrder: ['drums', 'bass', 'chords', 'lead'],
-          mappings: {
-            drums: { sounds: ['bd', 'sn', 'hh', 'oh', 'cp'], style: 'energetic' },
-            bass: { sounds: ['fm:1', 'sawtooth:0.8'], style: 'driving bassline' },
-            chords: { sounds: ['fm:3', 'sawtooth:0.5'], style: 'full chords' },
-            lead: { sounds: ['fm:5', 'square:0.6'], style: 'melodic hook' }
-          }
-        }
-      },
-      bridge: {
-        bars: 8,
-        layers: {},
-        combinedPattern: null,
-        instruments: {
-          buildOrder: ['atmosphere', 'bass', 'lead'],
-          mappings: {
-            atmosphere: { sounds: ['fm:7', 'triangle:0.3'], style: 'ethereal' },
-            bass: { sounds: ['sine:0.8', 'fm:1'], style: 'minimal' },
-            lead: { sounds: ['fm:5', 'sawtooth:0.4'], style: 'expressive' }
-          }
-        }
-      },
-      outro: {
-        bars: 8,
-        layers: {},
-        combinedPattern: null,
-        instruments: {
-          buildOrder: ['atmosphere', 'drums'],
-          mappings: {
-            atmosphere: { sounds: ['fm:9', 'sine:0.2'], style: 'fading' },
-            drums: { sounds: ['bd', 'hh'], style: 'sparse' }
-          }
-        }
-      }
-    };
+    // Sections will be dynamically determined by LLM based on audio analysis
+    this.sections = {};
   }
 
+  /**
+   * Wait for analysis data from dashboard
+   */
+  async waitForAnalysis() {
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (this.dashboard && this.dashboard.state.analysisData) {
+          clearInterval(checkInterval);
+          resolve(this.dashboard.state.analysisData);
+        }
+      }, 1000);
+    });
+  }
+  
   /**
    * Initialize LLM provider
    */
@@ -155,24 +104,28 @@ export class DazzleGenerator {
     }
     
     try {
-      // Analyze audio
-      console.log(chalk.yellow('Analyzing audio...'));
-      const analysis = await this.analyzeAudio(audioFile);
+      // Wait for audio analysis from dashboard
+      console.log(chalk.yellow('Waiting for audio analysis from dashboard...'));
+      console.log(chalk.gray('Please load your audio file in the dashboard'));
       
-      // Extract musical features
-      const { tempo, key, scale, features } = this.extractMusicalFeatures(analysis);
+      // Wait for analysis data
+      this.analysisData = await this.waitForAnalysis();
       
-      // Store for later use
-      this.tempo = tempo;
-      this.key = key;
-      this.scale = scale;
-      this.features = features;
+      // Extract from dashboard analysis
+      this.tempo = this.analysisData.tempo;
+      this.key = this.analysisData.key.split(' ')[0];
+      this.scale = this.analysisData.key.split(' ')[1] || 'major';
+      this.features = {
+        energy: parseFloat(this.analysisData.energy),
+        brightness: this.analysisData.spectralCentroid,
+        sections: this.analysisData.sections
+      };
       
       // Update dashboard
-      this.dashboard.setPhase(`${songName} by ${artistName} - ${tempo} BPM, Key: ${key}`);
+      this.dashboard.setPhase(`${songName} by ${artistName} - ${this.tempo} BPM, Key: ${this.key}`);
       
       // Start conversation
-      await this.startConversation(artistName, songName, tempo, key, features, analysis);
+      await this.startConversation(artistName, songName, this.tempo, this.key, this.features, this.analysisData);
       
       // Build song through conversation
       await this.buildSongThroughConversation();
