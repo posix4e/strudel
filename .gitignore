@@ -131,3 +131,10 @@ fabric.properties
 samples/*
 !samples/README.md
 .idea/
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+*.aiff
+*.m4a
