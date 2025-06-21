@@ -7,8 +7,7 @@ import chalk from 'chalk';
 import { DazzleDashboard } from './dazzle-dashboard.js';
 import { LLMProviderFactory } from './llm/index.js';
 // import { PatternValidator } from './pattern-validator.js';
-import StrudelAudioExport from './mock-audio-export.js';
-import { exportPatternUsingStrudelCC } from './mock-audio-export.js';
+// Audio export removed - will use integrated Strudel player in dashboard
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
@@ -744,43 +743,27 @@ ${errorAnalysis.examples[0].code}`;
    * Test a pattern by exporting it
    */
   async testPattern(pattern, name) {
-    const filename = `test-${name}-${Date.now()}.webm`;
-    const outputPath = path.join(process.cwd(), 'previews', filename);
-    
-    // Ensure directory exists
-    await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    
     console.log(chalk.gray(`Testing ${name} pattern...`));
     
-    // Send pattern to dashboard iframe
-    if (this.dashboard && this.dashboard.sendPatternTest) {
-      this.dashboard.sendPatternTest(pattern);
-    }
-    
-    const result = await exportPatternUsingStrudelCC({
-      pattern,
-      output: outputPath,
-      duration: 10,
-      format: 'webm',
-      headless: false, // Never headless
-      dashboard: this.dashboard // Pass dashboard for visualization
-    });
-    
-    if (!result.success) {
-      const error = new Error(result.error || 'Pattern test failed');
-      // Pass along console errors if available
-      if (result.details && result.details.consoleErrors) {
-        error.consoleErrors = result.details.consoleErrors;
-        // Extract the actual error message from console
-        const evalError = result.details.consoleErrors.find(e => e.includes('[eval] error:'));
-        if (evalError) {
-          error.message = evalError.replace('[eval] error:', '').trim();
+    // Send pattern to dashboard for testing
+    if (this.dashboard) {
+      this.dashboard.updateState({
+        currentPattern: pattern,
+        testingPattern: name
+      });
+      
+      // Send pattern test event
+      this.dashboard.broadcast({
+        type: 'pattern_test',
+        data: {
+          pattern,
+          name
         }
-      }
-      throw error;
+      });
     }
     
-    return outputPath;
+    // Return a dummy path since we're not exporting
+    return `pattern-${name}-tested`;
   }
   
   /**
@@ -788,25 +771,31 @@ ${errorAnalysis.examples[0].code}`;
    */
   async exportConversationalResult(artistName, songName) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `${artistName}-${songName}-conversational-${timestamp}.webm`;
+    const filename = `${artistName}-${songName}-conversational-${timestamp}.strudel`;
     const outputPath = path.join(process.cwd(), 'output', filename);
     
     // Ensure directory exists
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     
-    console.log(chalk.cyan('\n🎵 Exporting final composition...'));
+    console.log(chalk.cyan('\n🎵 Saving final pattern...'));
     
-    const result = await exportPatternUsingStrudelCC({
-      pattern: this.currentPattern,
-      output: outputPath,
-      duration: 180, // 3 minutes
-      format: 'webm',
-      headless: false, // Show browser for final export
-      dashboard: this.dashboard // Pass dashboard for visualization
-    });
+    // Save the pattern to a file
+    await fs.writeFile(outputPath, this.currentPattern, 'utf8');
     
-    if (!result.success) {
-      throw new Error(result.error || 'Final export failed');
+    // Send final pattern to dashboard
+    if (this.dashboard) {
+      this.dashboard.updateState({
+        finalPattern: this.currentPattern,
+        outputPath
+      });
+      
+      this.dashboard.broadcast({
+        type: 'final_pattern',
+        data: {
+          pattern: this.currentPattern,
+          filename
+        }
+      });
     }
     
     return outputPath;

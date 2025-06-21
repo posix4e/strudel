@@ -571,7 +571,12 @@ export class DazzleDashboard {
       </div>
 
       <div class="panel">
-        <div class="panel-header">PATTERN PREVIEW</div>
+        <div class="panel-header">
+          PATTERN PREVIEW
+          <button class="viz-button" style="float: right; margin-top: -5px;" onclick="toggleStrudelPlayer()">
+            ▶️ Play in Strudel
+          </button>
+        </div>
         <div class="pattern-preview" id="pattern">
           // Waiting for patterns...
         </div>
@@ -618,6 +623,15 @@ export class DazzleDashboard {
     <div style="color: #ff0; margin-bottom: 10px;">Currently Testing:</div>
     <pre style="color: #0f0; font-size: 0.8em; overflow-x: auto; max-height: 300px;" id="pattern-display"></pre>
   </div>
+  
+  <!-- Strudel Pattern Player -->
+  <div class="strudel-container" id="strudel-container">
+    <div class="strudel-header">
+      <span>Strudel Pattern Player</span>
+      <button class="close-button" onclick="document.getElementById('strudel-container').style.display='none'">✕</button>
+    </div>
+    <iframe class="strudel-iframe" id="strudel-iframe" src="about:blank"></iframe>
+  </div>
 
   <script>
     // Create particles
@@ -635,13 +649,51 @@ export class DazzleDashboard {
     const ws = new WebSocket('ws://localhost:8888');
     let state = {};
     
-    // Pattern display
+    // Pattern display and Strudel player
     function showCurrentPattern(pattern) {
       const container = document.getElementById('current-pattern');
       const display = document.getElementById('pattern-display');
       
       display.textContent = pattern;
       container.style.display = 'block';
+      
+      // Load pattern in Strudel player
+      loadPatternInStrudel(pattern);
+    }
+    
+    function loadPatternInStrudel(pattern) {
+      const strudelContainer = document.getElementById('strudel-container');
+      const strudelIframe = document.getElementById('strudel-iframe');
+      
+      // Store current pattern globally
+      window.currentPattern = pattern;
+      
+      // Encode the pattern for URL
+      const encodedPattern = encodeURIComponent(pattern);
+      
+      // Use strudel.cc with the pattern
+      const strudelUrl = 'https://strudel.cc/?code=' + encodedPattern;
+      
+      // Load in iframe
+      strudelIframe.src = strudelUrl;
+      strudelContainer.style.display = 'block';
+      
+      // Alternative: Create embedded player (better integration)
+      // This would require loading Strudel's libraries directly
+      // For now, iframe is the simplest solution
+    }
+    
+    // Toggle Strudel player visibility
+    window.toggleStrudelPlayer = function() {
+      const strudelContainer = document.getElementById('strudel-container');
+      if (strudelContainer.style.display === 'none' || !strudelContainer.style.display) {
+        // Get current pattern from display
+        const patternEl = document.getElementById('pattern');
+        const pattern = patternEl.textContent || window.currentPattern || '// No pattern yet';
+        loadPatternInStrudel(pattern);
+      } else {
+        strudelContainer.style.display = 'none';
+      }
     }
 
     ws.onmessage = (event) => {
@@ -659,6 +711,11 @@ export class DazzleDashboard {
       } else if (message.type === 'pattern_test') {
         // Show pattern being tested
         showCurrentPattern(message.data.pattern);
+      } else if (message.type === 'final_pattern') {
+        // Show final pattern
+        showCurrentPattern(message.data.pattern);
+        // Update status
+        document.getElementById('status').textContent = 'COMPLETE - Pattern saved as ' + message.data.filename;
       }
     };
     
