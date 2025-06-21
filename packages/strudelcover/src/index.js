@@ -1,7 +1,5 @@
-// Audio analysis now happens in dashboard
 import { LLMProviderFactory } from './llm/index.js';
-import { DazzleDashboard } from './dazzle-dashboard.js';
-import { DazzleGenerator } from './dazzle-generator.js';
+import { SimpleDazzle } from './dazzle.js';
 import { existsSync, mkdirSync } from 'fs';
 import chalk from 'chalk';
 
@@ -11,12 +9,6 @@ import chalk from 'chalk';
 export class StrudelCover {
   constructor(options = {}) {
     this.options = options;
-    
-    // Dazzle mode - real-time construction dashboard
-    this.dazzleDashboard = null;
-    
-    // Audio analysis now happens in dashboard
-    
     this.outputDir = options.outputDir || './strudelcover-output';
     
     // Create output directory
@@ -73,30 +65,21 @@ export class StrudelCover {
     // Initialize LLM provider if not already done
     await this.initializeLLM();
     
-    if (this.sparkleMode) {
-      await this.sparkle.showIntro();
-      await this.sparkle.glitchEffect();
-    }
-    
-    // Initialize dazzle dashboard
-    if (this.dazzleMode) {
-      const { DazzleDashboard } = await import('./dazzle-dashboard.js');
-      this.dazzleDashboard = new DazzleDashboard();
-      await this.dazzleDashboard.start();
-      this.dazzleDashboard.setPhase('analyzing');
-    }
-    
     console.log(chalk.blue(`\n🎵 StrudelCover: "${songName}" by ${artistName}\n`));
     
     try {
-      // Only dazzle mode is supported
-      const { DazzleGenerator } = await import('./dazzle-generator.js');
-      const dazzleGen = new DazzleGenerator({
-        llmProvider: this.llmProvider,
-        dashboard: this.dazzleDashboard
+      // Use simplified dazzle mode
+      const dazzle = new SimpleDazzle({
+        llmProvider: this.llmProvider
       });
       
-      return await dazzleGen.generateCover(songPath, artistName, songName, options);
+      await dazzle.start();
+      const pattern = await dazzle.generatePattern(songPath, artistName, songName);
+      
+      // Keep process running
+      return new Promise(() => {
+        console.log(chalk.yellow('\nPress Ctrl+C to exit\n'));
+      });
     } catch (error) {
       console.error(chalk.red('Error:'), error.message);
       throw error;
@@ -107,6 +90,5 @@ export class StrudelCover {
 
 // Export everything
 export { LLMProviderFactory, BaseLLMProvider } from './llm/index.js';
-export { DazzleDashboard } from './dazzle-dashboard.js';
-export { DazzleGenerator } from './dazzle-generator.js';
+export { SimpleDazzle, dazzle } from './dazzle.js';
 export default StrudelCover;

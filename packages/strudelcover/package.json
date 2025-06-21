@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "node test/test.js",
-    "cover": "node src/cli.js"
+    "cover": "node src/cli.js",
+    "test-dazzle": "node test-dazzle.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",

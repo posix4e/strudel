@@ -110,11 +110,10 @@ program.on('--help', () => {
   console.log('  $ strudelcover song.mp3 "Artist" "Song" --output ./my-covers');
   console.log('');
   console.log('Dazzle Mode Features:');
-  console.log('  - Real-time construction dashboard on http://localhost:8888');
-  console.log('  - Section-by-section song building');
-  console.log('  - Conversational pattern generation');
-  console.log('  - Visual progress tracking');
-  console.log('  - Intelligent error recovery');
+  console.log('  - Simple dashboard on http://localhost:8888');
+  console.log('  - Direct pattern generation using LLM');
+  console.log('  - Automatic playback with Playwright');
+  console.log('  - Embedded Strudel.cc for testing');
   console.log('');
   console.log('LLM Providers:');
   console.log('  openai (default)  - GPT-4o, requires OPENAI_API_KEY');
