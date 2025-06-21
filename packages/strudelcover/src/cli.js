@@ -13,8 +13,15 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load environment variables from project root
+// Load environment variables from project root and local
 config({ path: resolve(__dirname, '../../../.env') });
+config({ path: resolve(__dirname, '../.env') });
+
+// Handle clean shutdown
+process.on('SIGINT', () => {
+  console.log(chalk.yellow('\n\n👋 Shutting down dashboard...'));
+  process.exit(0);
+});
 
 // Main program
 program
@@ -26,14 +33,14 @@ program
 
 // Default cover generation command (Dazzle mode only)
 const coverCommand = program
-  .command('cover <artist> <song>', { isDefault: true })
+  .command('cover <audioFile> <artist> <song>', { isDefault: true })
   .description('Generate a Strudel cover of a song using Dazzle mode')
   .option('-k, --api-key <key>', 'OpenAI API key (or set OPENAI_API_KEY env var)')
   .option('-o, --output <dir>', 'Output directory', './strudelcover-output')
   .option('--llm <provider>', 'LLM provider: openai, anthropic, ollama', 'openai')
   .option('--model <model>', 'LLM model to use')
   .option('--llm-base-url <url>', 'Custom LLM API endpoint')
-  .action(async (artist, song, options) => {
+  .action(async (audioFile, artist, song, options) => {
     console.log(chalk.blue.bold('\n🎸 StrudelCover - AI Song Recreation\n'));
     
     const spinner = ora('Initializing...').start();
@@ -49,8 +56,13 @@ const coverCommand = program
         process.exit(1);
       }
       
+      // Check audio file exists
+      if (!existsSync(audioFile)) {
+        spinner.fail(`Audio file not found: ${audioFile}`);
+        process.exit(1);
+      }
+      
       spinner.succeed('Ready to create cover!');
-      console.log(chalk.yellow('\n📊 Please load your audio file in the dashboard to begin analysis'));
       
       // Create StrudelCover instance (always dazzle mode)
       const coverOptions = {
@@ -67,10 +79,10 @@ const coverCommand = program
       const cover = new StrudelCover(coverOptions);
       
       // Generate cover
-      const results = await cover.cover(null, artist, song); // Audio loaded in dashboard
+      const results = await cover.cover(audioFile, artist, song);
       
-      // Success!
-      console.log(chalk.green.bold('\n🎉 Cover generation complete!\n'));
+      // Keep the process running
+      console.log(chalk.cyan('\n📊 Dashboard is running. Press Ctrl+C to exit.\n'));
       
     } catch (error) {
       spinner.fail('Cover generation failed');

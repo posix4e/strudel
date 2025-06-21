@@ -4,6 +4,7 @@ import { WebSocketServer } from 'ws';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import open from 'open';
+import { chromium } from 'playwright';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,6 +14,8 @@ export class DazzleDashboard {
     this.server = null;
     this.wss = null;
     this.clients = new Set();
+    this.browser = null;
+    this.page = null;
     this.state = {
       phase: 'initializing',
       structure: null,
@@ -26,6 +29,77 @@ export class DazzleDashboard {
     };
   }
 
+  async setupAutoplay() {
+    if (!this.page) return;
+    
+    // Watch for messages that indicate a pattern is being tested
+    this.clients.forEach(client => {
+      client.on('message', async (message) => {
+        try {
+          const data = JSON.parse(message);
+          if (data.type === 'pattern_loaded') {
+            // Pattern was just loaded in iframe, wait and try to play
+            await this.autoplayPattern();
+          }
+        } catch (e) {
+          // Not JSON, ignore
+        }
+      });
+    });
+  }
+  
+  async autoplayPattern() {
+    if (!this.page) return;
+    
+    console.log('🎵 Attempting to autoplay pattern...');
+    
+    try {
+      // Wait for iframe to be present
+      await this.page.waitForSelector('iframe#strudel-iframe', { timeout: 5000 });
+      
+      // Get all frames
+      const frames = this.page.frames();
+      
+      for (const frame of frames) {
+        if (frame.url().includes('strudel.cc')) {
+          console.log('Found Strudel frame, waiting for it to load...');
+          
+          // Wait for Strudel to fully load
+          await frame.waitForLoadState('networkidle');
+          await this.page.waitForTimeout(2000);
+          
+          // Try to find and click play button
+          const playSelectors = [
+            'button[title="play"]',
+            'button[aria-label="play"]', 
+            'button.play',
+            '[data-testid="play-button"]',
+            'button:has(svg[viewBox*="0 0 24 24"])'
+          ];
+          
+          for (const selector of playSelectors) {
+            try {
+              const button = await frame.$(selector);
+              if (button) {
+                await button.click();
+                console.log('✅ Clicked play button!');
+                return;
+              }
+            } catch (e) {
+              // Continue trying
+            }
+          }
+          
+          // If no button found, try keyboard shortcut
+          console.log('Trying keyboard shortcut...');
+          await frame.press('body', 'Space');
+        }
+      }
+    } catch (e) {
+      console.log('Autoplay attempt failed:', e.message);
+    }
+  }
+  
   async start(port = 8888) {
     return new Promise((resolve) => {
       // Create HTTP server
@@ -67,13 +141,31 @@ export class DazzleDashboard {
         });
       });
 
-      this.server.listen(port, () => {
+      this.server.listen(port, async () => {
         console.log(`🌟 Dazzle Dashboard running at http://localhost:${port}`);
-        // Force new window, not tab
-        open(`http://localhost:${port}`, {
-          newInstance: true,
-          wait: false
-        });
+        
+        try {
+          // Launch browser with Playwright
+          this.browser = await chromium.launch({ 
+            headless: false,
+            args: ['--autoplay-policy=no-user-gesture-required']
+          });
+          this.page = await this.browser.newPage();
+          
+          // Navigate to dashboard
+          await this.page.goto(`http://localhost:${port}`);
+          
+          // Set up pattern autoplay
+          await this.setupAutoplay();
+          
+        } catch (error) {
+          console.log('Could not launch Playwright browser, falling back to default');
+          open(`http://localhost:${port}`, {
+            newInstance: true,
+            wait: false
+          });
+        }
+        
         resolve();
       });
     });
@@ -102,6 +194,13 @@ export class DazzleDashboard {
         client.send(data);
       }
     });
+    
+    // If it's a pattern test, trigger autoplay after a delay
+    if (message.type === 'pattern_test' && this.page) {
+      setTimeout(() => {
+        this.autoplayPattern();
+      }, 3000);
+    }
   }
 
   setPhase(phase) {
@@ -719,9 +818,7 @@ export class DazzleDashboard {
     <iframe class="strudel-iframe" id="strudel-iframe" src="about:blank"></iframe>
   </div>
 
-  <!-- Load Essentia.js -->
-  <script src="https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.umd.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-model.umd.js"></script>
+  <!-- Essentia.js removed for now - using simplified analysis -->
   
   <script>
     // Create particles
@@ -735,24 +832,17 @@ export class DazzleDashboard {
       particlesContainer.appendChild(particle);
     }
     
-    // Initialize Essentia.js
-    let essentia = null;
+    // Initialize Web Audio
     let audioContext = null;
     let analyzedData = null;
     
-    async function initializeEssentia() {
-      try {
-        essentia = new EssentiaWASM.Essentia(EssentiaWASM.EssentiaWASM);
-        await essentia.init();
+    // Create audio context on user interaction
+    function initializeAudioContext() {
+      if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('Essentia.js initialized');
-      } catch (error) {
-        console.error('Failed to initialize Essentia.js:', error);
+        console.log('Audio context initialized');
       }
     }
-    
-    // Initialize on load
-    initializeEssentia();
     
     // Audio file handling
     document.getElementById('audio-file').addEventListener('change', async (event) => {
@@ -763,6 +853,9 @@ export class DazzleDashboard {
       document.getElementById('status').textContent = 'Analyzing audio...';
       
       try {
+        // Initialize audio context on user action
+        initializeAudioContext();
+        
         // Read file as array buffer
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -788,34 +881,22 @@ export class DazzleDashboard {
     });
     
     async function analyzeAudio(audioBuffer) {
-      if (!essentia) {
-        throw new Error('Essentia.js not initialized');
-      }
-      
       // Convert to mono
       const channelData = audioBuffer.getChannelData(0);
       const sampleRate = audioBuffer.sampleRate;
       
-      // Basic feature extraction
-      const features = essentia.Extractor(channelData, {
-        sampleRate: sampleRate,
-        frameSize: 2048,
-        hopSize: 1024
-      });
+      // Simple tempo detection using onset detection
+      const tempo = detectTempo(channelData, sampleRate);
       
-      // Tempo estimation
-      const tempo = essentia.RhythmExtractor2013(channelData, {
-        sampleRate: sampleRate
-      });
+      // Simple energy calculation
+      let totalEnergy = 0;
+      for (let i = 0; i < channelData.length; i++) {
+        totalEnergy += Math.abs(channelData[i]);
+      }
+      const avgEnergy = totalEnergy / channelData.length;
       
-      // Key detection
-      const key = essentia.KeyExtractor(channelData, {
-        sampleRate: sampleRate
-      });
-      
-      // Energy and spectral features
-      const spectralCentroid = essentia.SpectralCentroid(features.spectrogram);
-      const energy = essentia.Energy(channelData);
+      // Basic spectral centroid (brightness)
+      const spectralCentroid = calculateSpectralCentroid(channelData, sampleRate);
       
       // Section detection (simplified)
       const sections = detectSections(channelData, sampleRate);
@@ -824,16 +905,51 @@ export class DazzleDashboard {
       drawWaveform(channelData);
       
       return {
-        tempo: Math.round(tempo.bpm),
-        key: key.key + ' ' + key.scale,
-        energy: energy.toFixed(2),
+        tempo: tempo,
+        key: 'C major', // Simplified - would need FFT for real key detection
+        energy: avgEnergy.toFixed(3),
         spectralCentroid: Math.round(spectralCentroid),
         duration: audioBuffer.duration,
         sampleRate: sampleRate,
         sections: sections,
-        artist: document.getElementById('artist-input')?.value || 'Unknown',
-        song: document.getElementById('song-input')?.value || 'Unknown'
+        artist: 'Unknown',
+        song: 'Unknown'
       };
+    }
+    
+    function detectTempo(audioData, sampleRate) {
+      // Very simple beat detection - count peaks
+      const threshold = 0.3;
+      let beats = 0;
+      let lastBeat = -1;
+      const minDistance = sampleRate * 0.2; // 200ms minimum between beats
+      
+      for (let i = 0; i < audioData.length; i++) {
+        if (Math.abs(audioData[i]) > threshold && i - lastBeat > minDistance) {
+          beats++;
+          lastBeat = i;
+        }
+      }
+      
+      const duration = audioData.length / sampleRate;
+      const bpm = Math.round((beats / duration) * 60);
+      
+      // Clamp to reasonable range
+      return Math.max(60, Math.min(200, bpm));
+    }
+    
+    function calculateSpectralCentroid(audioData, sampleRate) {
+      // Simplified spectral centroid
+      let sum = 0;
+      let weightedSum = 0;
+      
+      for (let i = 0; i < Math.min(audioData.length, 2048); i++) {
+        const magnitude = Math.abs(audioData[i]);
+        sum += magnitude;
+        weightedSum += magnitude * i;
+      }
+      
+      return sum > 0 ? (weightedSum / sum) * (sampleRate / 2048) : 0;
     }
     
     function detectSections(audioData, sampleRate) {
@@ -932,16 +1048,19 @@ export class DazzleDashboard {
       // Encode the pattern for URL
       const encodedPattern = encodeURIComponent(pattern);
       
-      // Use strudel.cc with the pattern
-      const strudelUrl = 'https://strudel.cc/?code=' + encodedPattern;
+      // Use strudel.cc with the pattern and autoplay
+      const strudelUrl = 'https://strudel.cc/?code=' + encodedPattern + '&autoplay=1';
       
       // Load in iframe
       strudelIframe.src = strudelUrl;
       strudelContainer.style.display = 'block';
       
-      // Alternative: Create embedded player (better integration)
-      // This would require loading Strudel's libraries directly
-      // For now, iframe is the simplest solution
+      // Notify server that pattern was loaded
+      strudelIframe.onload = function() {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'pattern_loaded' }));
+        }
+      };
     }
     
     // Toggle Strudel player visibility
@@ -1076,20 +1195,38 @@ export class DazzleDashboard {
     // Initial update
     updateUI();
     
-    // Audio Visualizer with Real Audio Data
+    // Audio Visualizer
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
     let animationId;
-    let audioContext = null;
-    let analyser = null;
-    let dataArray = null;
     let currentMode = 'waveform';
     
-    // Add audio data to state for real visualization
+    // Simulated audio data for visualization
     state.audioData = {
       waveform: new Uint8Array(128),
       frequency: new Uint8Array(64)
     };
+    
+    // Generate random but smooth audio data for visualization
+    function generateAudioData() {
+      const time = Date.now() / 1000;
+      
+      // Generate waveform data
+      for (let i = 0; i < state.audioData.waveform.length; i++) {
+        const value = Math.sin(i * 0.1 + time * 2) * 64 + 
+                     Math.sin(i * 0.05 + time) * 32 +
+                     Math.random() * 16;
+        state.audioData.waveform[i] = Math.abs(value) + 128;
+      }
+      
+      // Generate frequency data
+      for (let i = 0; i < state.audioData.frequency.length; i++) {
+        const value = Math.max(0, 255 - i * 4) * 
+                     (Math.sin(time * 3 + i * 0.1) * 0.5 + 0.5) +
+                     Math.random() * 20;
+        state.audioData.frequency[i] = Math.min(255, Math.max(0, value));
+      }
+    }
     
     // Handle visualization mode changes
     document.querySelectorAll('.viz-button').forEach(button => {
@@ -1107,9 +1244,9 @@ export class DazzleDashboard {
         const height = canvas.height;
         const data = state.audioData.waveform;
         
-        // Draw a simple test pattern to verify canvas is working
-        ctx.fillStyle = '#0ff';
-        ctx.fillRect(10, 10, 50, 50);
+        // Clear canvas
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, width, height);
         
         // Draw waveform
         ctx.strokeStyle = '#0ff';
@@ -1214,6 +1351,9 @@ export class DazzleDashboard {
       try {
         const width = canvas.width;
         const height = canvas.height;
+        
+        // Generate new audio data
+        generateAudioData();
         
         // Clear canvas
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';

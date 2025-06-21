@@ -12,7 +12,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import { existsSync } from 'fs';
-// Audio analysis now happens in the dashboard with Essentia.js
+import { SimpleAudioAnalyzer } from './simple-analyzer.js';
 
 export class DazzleGenerator {
   constructor(options = {}) {
@@ -21,8 +21,7 @@ export class DazzleGenerator {
     this.llmProvider = options.llmProvider || null;
     // this.validator = new PatternValidator();
     this.dashboard = options.dashboard || null;
-    // Analysis now happens in dashboard
-    this.analysisData = null;
+    this.analyzer = new SimpleAudioAnalyzer();
     
     // Track conversation history
     this.conversation = [];
@@ -37,19 +36,6 @@ export class DazzleGenerator {
     this.sections = {};
   }
 
-  /**
-   * Wait for analysis data from dashboard
-   */
-  async waitForAnalysis() {
-    return new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (this.dashboard && this.dashboard.state.analysisData) {
-          clearInterval(checkInterval);
-          resolve(this.dashboard.state.analysisData);
-        }
-      }, 1000);
-    });
-  }
   
   /**
    * Initialize LLM provider
@@ -104,22 +90,20 @@ export class DazzleGenerator {
     }
     
     try {
-      // Wait for audio analysis from dashboard
-      console.log(chalk.yellow('Waiting for audio analysis from dashboard...'));
-      console.log(chalk.gray('Please load your audio file in the dashboard'));
+      // Analyze audio file
+      console.log(chalk.yellow('Analyzing audio...'));
+      const analysis = await this.analyzer.analyze(audioFile);
       
-      // Wait for analysis data
-      this.analysisData = await this.waitForAnalysis();
-      
-      // Extract from dashboard analysis
-      this.tempo = this.analysisData.tempo;
-      this.key = this.analysisData.key.split(' ')[0];
-      this.scale = this.analysisData.key.split(' ')[1] || 'major';
+      // Extract features
+      this.tempo = analysis.tempo;
+      this.key = analysis.key;
+      this.scale = analysis.scale;
       this.features = {
-        energy: parseFloat(this.analysisData.energy),
-        brightness: this.analysisData.spectralCentroid,
-        sections: this.analysisData.sections
+        energy: analysis.energy,
+        brightness: analysis.spectralCentroid,
+        sections: analysis.sections
       };
+      this.analysisData = analysis;
       
       // Update dashboard
       this.dashboard.setPhase(`${songName} by ${artistName} - ${this.tempo} BPM, Key: ${this.key}`);
@@ -135,7 +119,11 @@ export class DazzleGenerator {
       
       console.log(chalk.green(`\n✅ Cover generated successfully: ${outputPath}`));
       
-      return outputPath;
+      // Keep the process running - dashboard is still active
+      return new Promise(() => {
+        // This promise never resolves, keeping the process alive
+        // User can Ctrl+C to exit
+      });
       
     } catch (error) {
       console.error(chalk.red('Error generating cover:'), error);

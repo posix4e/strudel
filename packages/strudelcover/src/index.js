@@ -15,8 +15,7 @@ export class StrudelCover {
     // Dazzle mode - real-time construction dashboard
     this.dazzleDashboard = null;
     
-    // Always use advanced analyzer
-    this.analyzer = new AdvancedAudioAnalyzer();
+    // Audio analysis now happens in dashboard
     
     this.outputDir = options.outputDir || './strudelcover-output';
     
@@ -90,6 +89,14 @@ export class StrudelCover {
     console.log(chalk.blue(`\n🎵 StrudelCover: "${songName}" by ${artistName}\n`));
     
     try {
+      // Only dazzle mode is supported
+      const { DazzleGenerator } = await import('./dazzle-generator.js');
+      const dazzleGen = new DazzleGenerator({
+        llmProvider: this.llmProvider,
+        dashboard: this.dazzleDashboard
+      });
+      
+      return await dazzleGen.generateCover(songPath, artistName, songName, options);
     } catch (error) {
       console.error(chalk.red('Error:'), error.message);
       throw error;
