@@ -37,7 +37,7 @@ const coverCommand = program
   .description('Generate a Strudel cover of a song using Dazzle mode')
   .option('-k, --api-key <key>', 'OpenAI API key (or set OPENAI_API_KEY env var)')
   .option('-o, --output <dir>', 'Output directory', './strudelcover-output')
-  .option('--llm <provider>', 'LLM provider: openai, anthropic, ollama', 'openai')
+  .option('--llm <provider>', 'LLM provider: openai, anthropic, ollama', 'anthropic')
   .option('--model <model>', 'LLM model to use')
   .option('--llm-base-url <url>', 'Custom LLM API endpoint')
   .action(async (audioFile, artist, song, options) => {
@@ -47,7 +47,7 @@ const coverCommand = program
     
     try {
       // Configure LLM
-      const llmProvider = options.llm || 'openai';
+      const llmProvider = options.llm || 'anthropic';
       const envKeyName = `${llmProvider.toUpperCase()}_API_KEY`;
       const apiKey = options.apiKey || process.env[envKeyName] || process.env.OPENAI_API_KEY;
       
@@ -69,7 +69,7 @@ const coverCommand = program
         llm: llmProvider,
         llmConfig: {
           apiKey,
-          model: options.model,
+          model: options.model || (llmProvider === 'anthropic' ? 'claude-3-opus-20240229' : undefined),
           baseURL: options.llmBaseUrl
         },
         outputDir: options.output,
@@ -116,8 +116,8 @@ program.on('--help', () => {
   console.log('  - Embedded Strudel.cc for testing');
   console.log('');
   console.log('LLM Providers:');
-  console.log('  openai (default)  - GPT-4o, requires OPENAI_API_KEY');
-  console.log('  anthropic         - Claude, requires ANTHROPIC_API_KEY');
+  console.log('  anthropic (default) - Claude 3 Opus, requires ANTHROPIC_API_KEY');
+  console.log('  openai             - GPT-4o, requires OPENAI_API_KEY');
   console.log('  ollama            - Local models, no API key needed');
   console.log('');
   console.log('Environment Variables:');

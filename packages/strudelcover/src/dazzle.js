@@ -279,11 +279,12 @@ Return ONLY the Strudel code, no explanation.`;
 // Standalone function for easy use
 export async function dazzle(audioFile, artist, song, options = {}) {
   // Initialize LLM provider
+  const provider = options.provider || 'anthropic';
   const llmProvider = await LLMProviderFactory.create(
-    options.provider || 'openai',
+    provider,
     {
-      apiKey: options.apiKey || process.env.OPENAI_API_KEY,
-      model: options.model || 'gpt-4'
+      apiKey: options.apiKey || process.env[`${provider.toUpperCase()}_API_KEY`],
+      model: options.model || (provider === 'anthropic' ? 'claude-3-opus-20240229' : 'gpt-4')
     }
   );
 
