@@ -12,7 +12,7 @@ export class BaseLLMProvider {
    * @param {Object} options - Provider-specific options
    * @returns {Promise<string>} - Generated text
    */
-  async generateCompletion(messages, options = {}) {
+  async generateCompletion(messages, _options = {}) {
     throw new Error('generateCompletion must be implemented by subclass');
   }
 

@@ -16,6 +16,7 @@ const __dirname = dirname(__filename);
 // Load environment variables from project root and local
 config({ path: resolve(__dirname, '../../../.env') });
 config({ path: resolve(__dirname, '../.env') });
+config(); // Also try current directory
 
 // Handle clean shutdown
 process.on('SIGINT', () => {
@@ -40,6 +41,7 @@ const coverCommand = program
   .option('--llm <provider>', 'LLM provider: openai, anthropic, ollama', 'anthropic')
   .option('--model <model>', 'LLM model to use')
   .option('--llm-base-url <url>', 'Custom LLM API endpoint')
+  .option('-r, --record-output <file>', 'Output file for recording (e.g., output.wav)')
   .action(async (audioFile, artist, song, options) => {
     console.log(chalk.blue.bold('\n🎸 StrudelCover - AI Song Recreation\n'));
     
@@ -78,8 +80,11 @@ const coverCommand = program
       
       const cover = new StrudelCover(coverOptions);
       
-      // Generate cover
-      const results = await cover.cover(audioFile, artist, song);
+      // Generate cover with recording options
+      const coverGenerationOptions = {
+        recordOutput: options.recordOutput
+      };
+      const results = await cover.cover(audioFile, artist, song, coverGenerationOptions);
       
       // Keep the process running
       console.log(chalk.cyan('\n📊 Dashboard is running. Press Ctrl+C to exit.\n'));
@@ -108,6 +113,9 @@ program.on('--help', () => {
   console.log('');
   console.log('  # Custom output directory');
   console.log('  $ strudelcover song.mp3 "Artist" "Song" --output ./my-covers');
+  console.log('');
+  console.log('  # Record the output');
+  console.log('  $ strudelcover song.mp3 "Artist" "Song" --record-output output.wav');
   console.log('');
   console.log('Dazzle Mode Features:');
   console.log('  - Simple dashboard on http://localhost:8888');

@@ -70,11 +70,19 @@ export class StrudelCover {
     try {
       // Use simplified dazzle mode
       const dazzle = new SimpleDazzle({
-        llmProvider: this.llmProvider
+        llmProvider: this.llmProvider,
+        recordOutput: options.recordOutput
       });
       
       await dazzle.start();
       const pattern = await dazzle.generatePattern(songPath, artistName, songName);
+      
+      // Handle cleanup on exit
+      process.on('SIGINT', async () => {
+        console.log(chalk.yellow('\n\nShutting down...'));
+        await dazzle.stop();
+        process.exit(0);
+      });
       
       // Keep process running
       return new Promise(() => {
